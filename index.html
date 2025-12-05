@@ -1,0 +1,214 @@
+<div>
+            <label className="block font-semibold mb-2">Select Meal</label>
+            <div className="grid grid-cols-2 gap-2">
+              {['breakfast', 'lunch', 'dinner', 'snack'].map(meal => (
+                <button
+                  key={meal}
+                  onClick={() => setSelectedMealType(meal)}
+                  className={`px-4 py-2 rounded capitalize ${
+                    selectedMealType === meal 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {meal}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex gap-3 mt-6">
+          <button onClick={() => onAdd(recipe.id, selectedDate, selectedMealType)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Add to Plan
+          </button>
+          <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RecipeEditor = ({ recipe, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: recipe.name || '',
+    keywords: recipe.keywords?.join(', ') || '',
+    prepTime: recipe.prepTime || '',
+    cookTime: recipe.cookTime || '',
+    serves: recipe.serves || '',
+    source: recipe.source || '',
+    recipeLink: recipe.recipeLink || '',
+    ingredients: recipe.ingredients || [{ name: '', amount: '', unit: 'g' }],
+    steps: recipe.steps?.join('\\n') || '',
+    nutrition: recipe.nutrition || '',
+    image: recipe.image || ''
+  });
+
+  const units = ['g', 'kg', 'oz', 'lb', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'piece', 'whole', 'each'];
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxWidth = 800;
+          const maxHeight = 600;
+          
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const resizedImage = canvas.toDataURL('image/jpeg', 0.85);
+          setFormData({ ...formData, image: resizedImage });
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addIngredient = () => setFormData({ ...formData, ingredients: [...formData.ingredients, { name: '', amount: '', unit: 'g' }] });
+  const updateIngredient = (index, field, value) => {
+    const newIngredients = [...formData.ingredients];
+    newIngredients[index][field] = value;
+    setFormData({ ...formData, ingredients: newIngredients });
+  };
+  const removeIngredient = (index) => setFormData({ ...formData, ingredients: formData.ingredients.filter((_, i) => i !== index) });
+
+  const handleSubmit = () => {
+    if (!formData.name.trim()) return alert('Please enter a recipe name');
+    const validIngredients = formData.ingredients.filter(ing => ing.name.trim());
+    if (validIngredients.length === 0) return alert('Please add at least one ingredient');
+    onSave({
+      ...recipe,
+      name: formData.name,
+      keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
+      prepTime: formData.prepTime,
+      cookTime: formData.cookTime,
+      serves: formData.serves,
+      source: formData.source,
+      recipeLink: formData.recipeLink,
+      ingredients: validIngredients,
+      steps: formData.steps.split('\\n').filter(Boolean),
+      nutrition: formData.nutrition,
+      image: formData.image
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto py-8">
+      <div className="bg-white rounded-lg max-w-4xl w-full my-8">
+        <div className="p-6 border-b sticky top-0 bg-white z-10 rounded-t-lg">
+          <h2 className="text-2xl font-bold">{recipe.id ? 'Edit Recipe' : 'New Recipe'}</h2>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block font-semibold mb-1">Recipe Name *</label>
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
+            </div>
+            <div>
+              <label className="block font-semibold mb-1">Prep Time (min)</label>
+              <input type="number" value={formData.prepTime} onChange={(e) => setFormData({ ...formData, prepTime: e.target.value })} className="w-full px-3 py-2 border rounded" placeholder="30" />
+            </div>
+            <div>
+              <label className="block font-semibold mb-1">Cook Time (min)</label>
+              <input type="number" value={formData.cookTime} onChange={(e) => setFormData({ ...formData, cookTime: e.target.value })} className="w-full px-3 py-2 border rounded" placeholder="45" />
+            </div>
+            <div>
+              <label className="block font-semibold mb-1">Serves</label>
+              <input type="text" value={formData.serves} onChange={(e) => setFormData({ ...formData, serves: e.target.value })} className="w-full px-3 py-2 border rounded" placeholder="4" />
+            </div>
+            <div>
+              <label className="block font-semibold mb-1">Source</label>
+              <input type="text" value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} className="w-full px-3 py-2 border rounded" placeholder="Jamie Oliver" />
+            </div>
+            <div className="col-span-2">
+              <label className="block font-semibold mb-1">Original Recipe Link</label>
+              <input type="url" value={formData.recipeLink} onChange={(e) => setFormData({ ...formData, recipeLink: e.target.value })} className="w-full px-3 py-2 border rounded" placeholder="https://example.com/recipe" />
+            </div>
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Recipe Image</label>
+            {formData.image && (
+              <div className="mb-2">
+                <img src={formData.image} alt="Preview" className="w-full h-48 object-cover rounded" />
+                <button onClick={() => setFormData({ ...formData, image: '' })} className="mt-2 text-sm text-red-600 hover:text-red-700">Remove Image</button>
+              </div>
+            )}
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full px-3 py-2 border rounded" />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Keywords (comma-separated)</label>
+            <input type="text" value={formData.keywords} onChange={(e) => setFormData({ ...formData, keywords: e.target.value })} placeholder="vegetarian, quick, dinner" className="w-full px-3 py-2 border rounded" />
+          </div>
+          <div>
+            <label className="block font-semibold mb-2">Ingredients *</label>
+            <div className="space-y-2">
+              {formData.ingredients.map((ing, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <input type="number" value={ing.amount} onChange={(e) => updateIngredient(idx, 'amount', e.target.value)} placeholder="250" className="w-24 px-3 py-2 border rounded" />
+                  <select value={ing.unit} onChange={(e) => updateIngredient(idx, 'unit', e.target.value)} className="w-28 px-3 py-2 border rounded">
+                    {units.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                  </select>
+                  <input type="text" value={ing.name} onChange={(e) => updateIngredient(idx, 'name', e.target.value)} placeholder="flour, eggs..." className="flex-1 px-3 py-2 border rounded" />
+                  <button onClick={() => removeIngredient(idx)} className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button onClick={addIngredient} className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                <Plus className="w-4 h-4" />Add Ingredient
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Steps (one per line) *</label>
+            <textarea value={formData.steps} onChange={(e) => setFormData({ ...formData, steps: e.target.value })} className="w-full px-3 py-2 border rounded h-32" placeholder="1. Preheat oven&#10;2. Mix ingredients..." />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1">Nutrition Info</label>
+            <input type="text" value={formData.nutrition} onChange={(e) => setFormData({ ...formData, nutrition: e.target.value })} placeholder="450 cal, 25g protein per serving" className="w-full px-3 py-2 border rounded" />
+          </div>
+        </div>
+        <div className="flex gap-3 p-6 border-t sticky bottom-0 bg-white rounded-b-lg">
+          <button onClick={handleSubmit} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Recipe</button>
+          <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PrintView = ({ recipe, onClose }) => (<div className="fixed inset-0 bg-white z-50 overflow-auto"><style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:0}}.print-container{font-family:Arial,sans-serif;font-size:10pt}.recipe-half{height:50vh;padding:1cm;box-sizing:border-box}.recipe-half h1{font-size:14pt;margin:0 0 .3cm 0;border-bottom:2px solid #333;padding-bottom:.2cm}.recipe-half .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.2cm;margin-bottom:.4cm;font-size:9pt}.recipe-half .keywords{color:#666;font-size:8pt;margin-bottom:.3cm}.recipe-half h2{font-size:11pt;margin:.4cm 0 .2cm 0;color:#333}.recipe-half ul,.recipe-half ol{margin:0;padding-left:1.2em}.recipe-half li{margin-bottom:.15cm;font-size:9pt}.recipe-half .nutrition{font-size:8pt;color:#666;margin-top:.3cm;padding-top:.3cm;border-top:1px solid #ccc}.cut-line{text-align:center;color:#999;font-size:8pt;padding:.2cm 0;border-top:1px dashed #999}`}</style><div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3"><button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print (Ctrl+P / Cmd+P)</button><button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button></div><div className="print-container"><div className="recipe-half"><h1>{recipe.name}</h1><div className="info-grid">{recipe.prepTime && <div><strong>Prep:</strong> {recipe.prepTime} min</div>}{recipe.cookTime && <div><strong>Cook:</strong> {recipe.cookTime} min</div>}{recipe.serves && <div><strong>Serves:</strong> {recipe.serves}</div>}{recipe.source && <div><strong>Source:</strong> {recipe.source}</div>}</div>{recipe.keywords?.length > 0 && <div className="keywords">{recipe.keywords.join(', ')}</div>}<h2>Ingredients</h2><ul>{recipe.ingredients?.map((i, idx) => (<li key={idx}>{i.amount} {i.unit} {i.name}</li>))}</ul><h2>Steps</h2><ol>{recipe.steps?.map((s, idx) => (<li key={idx}>{s}</li>))}</ol>{recipe.nutrition && <div className="nutrition">Nutrition: {recipe.nutrition}</div>}</div><div className="cut-line">✂ Cut along this line ✂</div><div className="recipe-half"><h1>{recipe.name}</h1><div className="info-grid">{recipe.prepTime && <div><strong>Prep:</strong> {recipe.prepTime} min</div>}{recipe.cookTime && <div><strong>Cook:</strong> {recipe.cookTime} min</div>}{recipe.serves && <div><strong>Serves:</strong> {recipe.serves}</div>}{recipe.source && <div><strong>Source:</strong> {recipe.source}</div>}</div>{recipe.keywords?.length > 0 && <div className="keywords">{recipe.keywords.join(', ')}</div>}<h2>Ingredients</h2><ul>{recipe.ingredients?.map((i, idx) => (<li key={idx}>{i.amount} {i.unit} {i.name}</li>))}</ul><h2>Steps</h2><ol>{recipe.steps?.map((s, idx) => (<li key={idx}>{s}</li>))}</ol>{recipe.nutrition && <div className="nutrition">Nutrition: {recipe.nutrition}</div>}</div></div></div>);
+
+const PrintMealPlanView = ({ weekDays, mealPlan, recipes, onClose }) => {
+  const getMealsForDay = (date) => mealPlan.filter(meal => meal.date === date);
+  return (<div className="fixed inset-0 bg-white z-50 overflow-auto"><style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:1.5cm}}.meal-plan-print{font-family:Arial,sans-serif;padding:1cm}.meal-plan-print h1{font-size:18pt;margin-bottom:1cm;text-align:center;border-bottom:3px solid #333;padding-bottom:.5cm}.day-section{margin-bottom:.8cm;page-break-inside:avoid}.day-header{font-size:14pt;font-weight:bold;background:#f0f0f0;padding:.3cm;margin-bottom:.3cm}.meal-row{display:grid;grid-template-columns:120px 1fr;padding:.2cm 0;border-bottom:1px solid #ddd}.meal-type{font-weight:bold;text-transform:capitalize}.meal-name{color:#333}.meal-time{font-size:9pt;color:#666}`}</style><div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3"><button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print</button><button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button></div><div className="meal-plan-print"><h1>Meal Plan</h1>{weekDays.map(day => {const mealsForDay = getMealsForDay(day.date);return (<div key={day.date} className="day-section"><div className="day-header">{day.display}</div>{['breakfast','lunch','dinner','snack'].map(mealType => {const meal = mealsForDay.find(m => m.mealType === mealType);const recipe = meal ? recipes.find(r => r.id === meal.recipeId) : null;return (<div key={mealType} className="meal-row"><div className="meal-type">{mealType}</div><div>{recipe ? (<><div className="meal-name">{recipe.name}</div>{recipe.prepTime && recipe.cookTime && (<div className="meal-time">{parseInt(recipe.prepTime) + parseInt(recipe.cookTime)} min total</div>)}</>):(<div style={{color:'#999'}}>—</div>)}</div></div>);})}</div>);})}</div></div>);
+};
+
+const PrintShoppingListView = ({ shoppingList, onClose }) => (<div className="fixed inset-0 bg-white z-50 overflow-auto"><style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:1.5cm}}.shopping-list-print{font-family:Arial,sans-serif;padding:1cm}.shopping-list-print h1{font-size:18pt;margin-bottom:1cm;text-align:center;border-bottom:3px solid #333;padding-bottom:.5cm}.shopping-item{display:flex;align-items:center;padding:.3cm 0;border-bottom:1px solid #ddd;font-size:11pt}.checkbox{width:.5cm;height:.5cm;border:2px solid #333;margin-right:.5cm;flex-shrink:0}`}</style><div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3"><button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print</button><button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button></div><div className="shopping-list-print"><h1>Shopping List</h1>{shoppingList.map((item, idx) => (<div key={idx} className="shopping-item"><div className="checkbox"></div><div>{item.amount} {item.unit} {item.name}</div></div>))}{shoppingList.length === 0 && (<div style={{textAlign:'center', color:'#999', marginTop:'2cm'}}>No items in shopping list</div>)}</div></div>);
+
+ReactDOM.render(<RecipeManager />, document.getElementById('root'));
