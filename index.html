@@ -272,6 +272,10 @@
     }
 
     function RecipeViewModal({recipe, onClose}) {
+      const [servingMultiplier, setServingMultiplier] = useState(1);
+      const originalServes = parseFloat(recipe.serves) || 1;
+      const scaledServes = Math.round(originalServes * servingMultiplier * 10) / 10;
+      
       return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div className="bg-white rounded-lg max-w-4xl w-full my-8">
           <div className="p-6 border-b flex justify-between items-center">
@@ -283,14 +287,51 @@
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               {recipe.prepTime && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Prep Time</div><div className="font-semibold">{recipe.prepTime} min</div></div>}
               {recipe.cookTime && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Cook Time</div><div className="font-semibold">{recipe.cookTime} min</div></div>}
-              {recipe.serves && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Serves</div><div className="font-semibold">{recipe.serves}</div></div>}
-              {recipe.source && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Source</div><div className="font-semibold">{recipe.source}</div></div>}
+              {recipe.serves && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Serves</div><div className="font-semibold">{scaledServes}</div></div>}
+              {recipe.source && <div className="bg-gray-50 p-3 rounded"><div className="text-xs text-gray-500">Source</div><div className="font-semibold text-sm">{recipe.source}</div></div>}
             </div>
+            
+            {recipe.serves && <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-sm font-semibold mb-2">Scale Recipe:</div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setServingMultiplier(0.5)} className={`px-3 py-1 rounded ${servingMultiplier === 0.5 ? 'bg-blue-600 text-white' : 'bg-white'}`}>½x</button>
+                <button onClick={() => setServingMultiplier(1)} className={`px-3 py-1 rounded ${servingMultiplier === 1 ? 'bg-blue-600 text-white' : 'bg-white'}`}>1x</button>
+                <button onClick={() => setServingMultiplier(1.5)} className={`px-3 py-1 rounded ${servingMultiplier === 1.5 ? 'bg-blue-600 text-white' : 'bg-white'}`}>1.5x</button>
+                <button onClick={() => setServingMultiplier(2)} className={`px-3 py-1 rounded ${servingMultiplier === 2 ? 'bg-blue-600 text-white' : 'bg-white'}`}>2x</button>
+                <button onClick={() => setServingMultiplier(3)} className={`px-3 py-1 rounded ${servingMultiplier === 3 ? 'bg-blue-600 text-white' : 'bg-white'}`}>3x</button>
+              </div>
+            </div>}
+            
             {recipe.recipeLink && <div><a href={recipe.recipeLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-2"><ExternalLink className="w-4 h-4"/>View Original Recipe</a></div>}
             {recipe.keywords?.length > 0 && <div className="flex flex-wrap gap-2">{recipe.keywords.map(kw => <span key={kw} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">{kw}</span>)}</div>}
-            <div><h3 className="text-lg font-bold mb-2">Ingredients</h3><ul className="list-disc list-inside space-y-1">{recipe.ingredients?.map((i, idx) => <li key={idx}>{i.amount} {i.unit} {i.name}</li>)}</ul></div>
+            {recipe.collection && <div className="flex items-center gap-2"><span className="text-sm font-semibold">Collection:</span><span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded">{recipe.collection}</span></div>}
+            
+            {(recipe.calories || recipe.protein || recipe.carbs || recipe.fat) && <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-sm font-semibold mb-3">Nutrition per serving:</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {recipe.calories && <div className="bg-white p-2 rounded text-center"><div className="text-xs text-gray-500">Calories</div><div className="font-bold text-green-700">{Math.round(recipe.calories * servingMultiplier / (originalServes || 1))}</div></div>}
+                {recipe.protein && <div className="bg-white p-2 rounded text-center"><div className="text-xs text-gray-500">Protein</div><div className="font-bold text-green-700">{Math.round(recipe.protein * servingMultiplier / (originalServes || 1))}g</div></div>}
+                {recipe.carbs && <div className="bg-white p-2 rounded text-center"><div className="text-xs text-gray-500">Carbs</div><div className="font-bold text-green-700">{Math.round(recipe.carbs * servingMultiplier / (originalServes || 1))}g</div></div>}
+                {recipe.fat && <div className="bg-white p-2 rounded text-center"><div className="text-xs text-gray-500">Fat</div><div className="font-bold text-green-700">{Math.round(recipe.fat * servingMultiplier / (originalServes || 1))}g</div></div>}
+              </div>
+            </div>}
+            
+            {recipe.rating && <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Rating:</span>
+              <div className="flex gap-1">
+                {[1,2,3,4,5].map(star => <span key={star} className={star <= recipe.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>)}
+              </div>
+            </div>}
+            
+            {recipe.lastMade && <div className="text-sm text-gray-500">Last made: {new Date(recipe.lastMade).toLocaleDateString()}</div>}
+            
+            {recipe.notes && <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+              <div className="text-sm font-semibold mb-1">My Notes:</div>
+              <div className="text-sm text-gray-700 whitespace-pre-wrap">{recipe.notes}</div>
+            </div>}
+            
+            <div><h3 className="text-lg font-bold mb-2">Ingredients</h3><ul className="list-disc list-inside space-y-1">{recipe.ingredients?.map((i, idx) => <li key={idx}>{Math.round((parseFloat(i.amount) * servingMultiplier) * 100) / 100} {i.unit} {i.name}</li>)}</ul></div>
             <div><h3 className="text-lg font-bold mb-2">Steps</h3><ol className="list-decimal list-inside space-y-2">{recipe.steps?.map((s, idx) => <li key={idx} className="mb-2">{s}</li>)}</ol></div>
-            {recipe.nutrition && <div className="bg-gray-50 p-4 rounded"><strong>Nutrition:</strong> {recipe.nutrition}</div>}
           </div>
           <div className="p-6 border-t flex gap-3">
             <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
@@ -354,8 +395,11 @@
     function RecipeEditor({recipe, onSave, onCancel}) {
       const [formData, setFormData] = useState({
         name: recipe.name || '', keywords: recipe.keywords?.join(', ') || '', prepTime: recipe.prepTime || '', cookTime: recipe.cookTime || '',
-        serves: recipe.serves || '', source: recipe.source || '', recipeLink: recipe.recipeLink || '',
-        ingredients: recipe.ingredients || [{name:'',amount:'',unit:'g'}], steps: recipe.steps?.join('\n') || '', nutrition: recipe.nutrition || '', imageUrl: recipe.imageUrl || ''
+        serves: recipe.serves || '', source: recipe.source || '', recipeLink: recipe.recipeLink || '', collection: recipe.collection || '',
+        ingredients: recipe.ingredients || [{name:'',amount:'',unit:'g'}], steps: recipe.steps?.join('\n') || '', 
+        imageUrl: recipe.imageUrl || '', rating: recipe.rating || 0, notes: recipe.notes || '',
+        calories: recipe.calories || '', protein: recipe.protein || '', carbs: recipe.carbs || '', fat: recipe.fat || '',
+        lastMade: recipe.lastMade || ''
       });
       const units = ['g','kg','oz','lb','ml','l','cup','tbsp','tsp','piece','whole','each'];
       const addIng = () => setFormData({...formData, ingredients: [...formData.ingredients, {name:'',amount:'',unit:'g'}]});
@@ -368,7 +412,9 @@
         onSave({...recipe, name: formData.name, keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
           prepTime: formData.prepTime, cookTime: formData.cookTime, serves: formData.serves, source: formData.source,
           recipeLink: formData.recipeLink, ingredients: validIngs, steps: formData.steps.split('\n').filter(Boolean),
-          nutrition: formData.nutrition, imageUrl: formData.imageUrl});
+          imageUrl: formData.imageUrl, collection: formData.collection, rating: parseInt(formData.rating) || 0,
+          notes: formData.notes, calories: parseFloat(formData.calories) || 0, protein: parseFloat(formData.protein) || 0,
+          carbs: parseFloat(formData.carbs) || 0, fat: parseFloat(formData.fat) || 0, lastMade: formData.lastMade});
       };
       return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto py-8">
         <div className="bg-white rounded-lg max-w-4xl w-full my-8">
