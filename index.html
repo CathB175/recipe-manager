@@ -72,7 +72,9 @@
       }, []);
 
       const handleExport = () => {
-        const data = { recipes, mealPlan, exportDate: new Date().toISOString() };
+        const today = new Date().toISOString().split('T')[0];
+        const futureMealPlan = mealPlan.filter(meal => meal.date >= today);
+        const data = { recipes, mealPlan: futureMealPlan, exportDate: new Date().toISOString() };
         setExportData(JSON.stringify(data, null, 2));
         setShowExportModal(true);
       };
