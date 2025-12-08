@@ -1,673 +1,747 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recipe Manager</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-    
-    const Plus = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
-    const Search = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>;
-    const Calendar = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
-    const ShoppingCart = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>;
-    const Printer = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
-    const Upload = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
-    const X = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-    const Edit2 = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
-    const Trash2 = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>;
-    const ExternalLink = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
-    const Copy = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Calendar, ShoppingCart, Book, Edit2, Trash2, X, Upload, Download, Printer, ChefHat, Clock, Users } from 'lucide-react';
 
-    function RecipeManager() {
-      const [recipes, setRecipes] = useState([]);
-      const [view, setView] = useState('recipes');
-      const [searchTerm, setSearchTerm] = useState('');
-      const [selectedKeywords, setSelectedKeywords] = useState([]);
-      const [editingRecipe, setEditingRecipe] = useState(null);
-      const [mealPlan, setMealPlan] = useState([]);
-      const [shoppingList, setShoppingList] = useState([]);
-      const [showExportModal, setShowExportModal] = useState(false);
-      const [exportData, setExportData] = useState('');
-      const [showImportModal, setShowImportModal] = useState(false);
-      const [showMealPlanModal, setShowMealPlanModal] = useState(false);
-      const [selectedRecipeForPlan, setSelectedRecipeForPlan] = useState(null);
-      const [printRecipe, setPrintRecipe] = useState(null);
-      const [mealPlanView, setMealPlanView] = useState('rolling');
-      const [printMealPlan, setPrintMealPlan] = useState(false);
-      const [printShoppingList, setPrintShoppingList] = useState(false);
-      const [viewingRecipe, setViewingRecipe] = useState(null);
+const RecipeManager = () => {
+  const [recipes, setRecipes] = useState([]);
+  const [collections, setCollections] = useState(['Breakfast', 'Lunch', 'Dinner', 'Desserts', 'Snacks']);
+  const [mealPlan, setMealPlan] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeView, setActiveView] = useState('recipes');
+  const [filterCollection, setFilterCollection] = useState('all');
+  const [shoppingList, setShoppingList] = useState([]);
+  const [planDays, setPlanDays] = useState(7);
 
-      useEffect(() => {
-        const savedRecipes = localStorage.getItem('recipes');
-        const savedMealPlan = localStorage.getItem('mealPlan');
-        if (savedRecipes) setRecipes(JSON.parse(savedRecipes));
-        if (savedMealPlan) setMealPlan(JSON.parse(savedMealPlan));
-      }, []);
-
-      useEffect(() => { localStorage.setItem('recipes', JSON.stringify(recipes)); }, [recipes]);
-      useEffect(() => { localStorage.setItem('mealPlan', JSON.stringify(mealPlan)); }, [mealPlan]);
-
-      useEffect(() => {
-        const today = new Date().toISOString().split('T')[0];
-        setMealPlan(prev => prev.filter(meal => meal.date >= today));
-      }, []);
-
-      const handleExport = () => {
-        const today = new Date().toISOString().split('T')[0];
-        const futureMealPlan = mealPlan.filter(meal => meal.date >= today);
-        const data = { recipes, mealPlan: futureMealPlan, exportDate: new Date().toISOString() };
-        setExportData(JSON.stringify(data, null, 2));
-        setShowExportModal(true);
-      };
-
-      const copyToClipboard = () => {
-        navigator.clipboard.writeText(exportData).then(() => {
-          alert('Data copied!');
-          setShowExportModal(false);
-        }).catch(() => alert('Failed to copy.'));
-      };
-
-      const handleImport = (jsonText) => {
-        try {
-          const data = JSON.parse(jsonText);
-          const recipes = (data.recipes || []).map(r => {
-            if (r.image && !r.imageUrl) {
-              const { image, ...rest } = r;
-              return rest;
-            }
-            return r;
-          });
-          setRecipes(recipes);
-          setMealPlan(data.mealPlan || []);
-          alert('Imported!');
-          setShowImportModal(false);
-        } catch (error) {
-          alert('Error: ' + error.message);
-        }
-      };
-
-      const allKeywords = [...new Set(recipes.flatMap(r => r.keywords || []))].sort();
-      const filteredRecipes = recipes.filter(recipe => {
-        const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesKeywords = selectedKeywords.length === 0 || selectedKeywords.every(kw => recipe.keywords?.includes(kw));
-        return matchesSearch && matchesKeywords;
-      });
-
-      const toggleKeyword = (kw) => setSelectedKeywords(prev => prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw]);
-
-      const saveRecipe = (recipe) => {
-        if (editingRecipe?.id) {
-          setRecipes(prev => prev.map(r => r.id === recipe.id ? recipe : r));
-        } else {
-          setRecipes(prev => [...prev, { ...recipe, id: Date.now() }]);
-        }
-        setEditingRecipe(null);
-      };
-
-      const deleteRecipe = (id) => {
-        if (confirm('Delete?')) {
-          setRecipes(prev => prev.filter(r => r.id !== id));
-          setMealPlan(prev => prev.filter(m => m.recipeId !== id));
-        }
-      };
-
-      const addToMealPlan = (recipeId, date, mealType) => {
-        const d = new Date(date);
-        const dayOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
-        setMealPlan(prev => [...prev, { recipeId, date, dayOfWeek, mealType }]);
-        setShowMealPlanModal(false);
-        setSelectedRecipeForPlan(null);
-      };
-
-      const openMealPlanModal = (recipeId) => {
-        setSelectedRecipeForPlan(recipeId);
-        setShowMealPlanModal(true);
-      };
-
-      const getWeekDays = () => {
-        const days = [];
-        let startDate = new Date();
-        if (mealPlanView === 'thisWeek') {
-          const dow = startDate.getDay();
-          startDate.setDate(startDate.getDate() + (dow === 0 ? -6 : 1 - dow));
-        } else if (mealPlanView === 'nextWeek') {
-          const dow = startDate.getDay();
-          startDate.setDate(startDate.getDate() + (dow === 0 ? 1 : 8 - dow));
-        } else if (mealPlanView === 'twoWeeks') {
-          const dow = startDate.getDay();
-          startDate.setDate(startDate.getDate() + (dow === 0 ? -6 : 1 - dow));
-        }
-        const numDays = mealPlanView === 'twoWeeks' ? 14 : 7;
-        for (let i = 0; i < numDays; i++) {
-          const date = new Date(startDate);
-          date.setDate(startDate.getDate() + i);
-          days.push({
-            date: date.toISOString().split('T')[0],
-            dayOfWeek: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][date.getDay()],
-            display: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-          });
-        }
-        return days;
-      };
-
-      const getMealsForDay = (date) => mealPlan.filter(m => m.date === date);
-
-      const generateShoppingList = () => {
-        const ing = {};
-        mealPlan.forEach(meal => {
-          const r = recipes.find(r => r.id === meal.recipeId);
-          if (r?.ingredients) {
-            r.ingredients.forEach(i => {
-              const k = `${i.name}-${i.unit}`;
-              if (ing[k]) ing[k].amount += parseFloat(i.amount) || 0;
-              else ing[k] = { name: i.name, amount: parseFloat(i.amount) || 0, unit: i.unit, checked: false };
-            });
-          }
-        });
-        setShoppingList(Object.values(ing));
-        setView('shopping');
-      };
-
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white shadow"><div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold">My Recipe Database</h1>
-              <div className="flex gap-2">
-                <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded hover:bg-gray-200"><Copy className="w-4 h-4"/>Export</button>
-                <button onClick={() => setShowImportModal(true)} className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded hover:bg-gray-200"><Upload className="w-4 h-4"/>Import</button>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setView('recipes')} className={`flex items-center gap-2 px-4 py-2 rounded ${view === 'recipes' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}><Search className="w-4 h-4"/>Recipes</button>
-              <button onClick={() => setView('meal-plan')} className={`flex items-center gap-2 px-4 py-2 rounded ${view === 'meal-plan' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}><Calendar className="w-4 h-4"/>Meal Plan ({mealPlan.length})</button>
-              <button onClick={() => setView('shopping')} className={`flex items-center gap-2 px-4 py-2 rounded ${view === 'shopping' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}><ShoppingCart className="w-4 h-4"/>Shopping List</button>
-            </div>
-          </div></div>
-
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            {view === 'recipes' && <RecipesView recipes={filteredRecipes} allKeywords={allKeywords} selectedKeywords={selectedKeywords} toggleKeyword={toggleKeyword} searchTerm={searchTerm} setSearchTerm={setSearchTerm} setEditingRecipe={setEditingRecipe} openMealPlanModal={openMealPlanModal} setPrintRecipe={setPrintRecipe} deleteRecipe={deleteRecipe} setViewingRecipe={setViewingRecipe} />}
-            {view === 'meal-plan' && <MealPlanView getWeekDays={getWeekDays} getMealsForDay={getMealsForDay} recipes={recipes} mealPlan={mealPlan} setMealPlan={setMealPlan} mealPlanView={mealPlanView} setMealPlanView={setMealPlanView} setPrintMealPlan={setPrintMealPlan} generateShoppingList={generateShoppingList} />}
-            {view === 'shopping' && <ShoppingView shoppingList={shoppingList} setShoppingList={setShoppingList} setPrintShoppingList={setPrintShoppingList} />}
-            {editingRecipe && <RecipeEditor recipe={editingRecipe} onSave={saveRecipe} onCancel={() => setEditingRecipe(null)} />}
-            {showExportModal && <ExportModal exportData={exportData} copyToClipboard={copyToClipboard} onClose={() => setShowExportModal(false)} />}
-            {showImportModal && <ImportModal onImport={handleImport} onCancel={() => setShowImportModal(false)} />}
-            {showMealPlanModal && selectedRecipeForPlan && <MealPlanModal recipe={recipes.find(r => r.id === selectedRecipeForPlan)} onAdd={addToMealPlan} onCancel={() => { setShowMealPlanModal(false); setSelectedRecipeForPlan(null); }} getWeekDays={getWeekDays} />}
-            {viewingRecipe && <RecipeViewModal recipe={viewingRecipe} onClose={() => setViewingRecipe(null)} />}
-            {printRecipe && <PrintRecipeView recipe={printRecipe} onClose={() => setPrintRecipe(null)} />}
-            {printMealPlan && <PrintMealPlanView weekDays={getWeekDays()} mealPlan={mealPlan} recipes={recipes} onClose={() => setPrintMealPlan(false)} />}
-            {printShoppingList && <PrintShoppingListView shoppingList={shoppingList} onClose={() => setPrintShoppingList(false)} />}
-          </div>
-        </div>
-      );
+  // Generate dates for meal planning
+  const generateDates = (days) => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
     }
-// END OF PART 1 - CONTINUE TO PART 2
-    // PART 2 - Component Definitions
-
-function RecipesView({recipes, allKeywords, selectedKeywords, toggleKeyword, searchTerm, setSearchTerm, setEditingRecipe, openMealPlanModal, setPrintRecipe, deleteRecipe, setViewingRecipe}) {
-  return (<div>
-    <div className="mb-6 flex gap-4">
-      <input type="text" placeholder="Search recipes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 px-4 py-2 border rounded-lg shadow-sm" />
-      <button onClick={() => setEditingRecipe({})} className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm font-medium"><Plus className="w-4 h-4"/>Add Recipe</button>
-    </div>
-    {allKeywords.length > 0 && <div className="mb-6 flex flex-wrap gap-2">{allKeywords.map(kw => <button key={kw} onClick={() => toggleKeyword(kw)} className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedKeywords.includes(kw) ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>{kw}</button>)}</div>}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {recipes.map(r => <div key={r.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100">
-        <div className="relative">
-          {r.imageUrl ? (
-            <img src={r.imageUrl} alt={r.name} className="w-full h-52 object-cover cursor-pointer" onClick={() => setViewingRecipe(r)} onError={(e) => {e.target.parentElement.innerHTML='<div class="w-full h-52 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>'}}/>
-          ) : (
-            <div className="w-full h-52 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 cursor-pointer" onClick={() => setViewingRecipe(r)}>
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </div>
-          )}
-          <div className="absolute top-3 right-3 flex gap-2">
-            {r.keywords?.slice(0, 2).map(kw => <span key={kw} className="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full shadow-sm">{kw}</span>)}
-          </div>
-        </div>
-        <div className="p-5">
-          <h3 className="font-bold text-xl mb-3 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => setViewingRecipe(r)}>{r.name}</h3>
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-            {r.prepTime && <div className="flex items-center gap-1">⏱️ <span>{r.prepTime}m</span></div>}
-            {r.cookTime && <div className="flex items-center gap-1">🔥 <span>{r.cookTime}m</span></div>}
-            {r.serves && <div className="flex items-center gap-1">🍽️ <span>{r.serves}</span></div>}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setViewingRecipe(r)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-              <Search className="w-3.5 h-3.5"/>View
-            </button>
-            <button onClick={() => openMealPlanModal(r.id)} className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors">
-              <Plus className="w-3.5 h-3.5"/>
-            </button>
-            <button onClick={() => setEditingRecipe(r)} className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-              <Edit2 className="w-3.5 h-3.5"/>
-            </button>
-            <button onClick={() => setPrintRecipe(r)} className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-              <Printer className="w-3.5 h-3.5"/>
-            </button>
-          </div>
-        </div>
-      </div>)}
-    </div>
-    {recipes.length === 0 && <div className="text-center py-16 text-gray-400"><div className="text-6xl mb-4">🍳</div><div className="text-xl font-medium">No recipes yet</div><div className="text-sm mt-2">Click "Add Recipe" to get started</div></div>}
-  </div>);
-}
-
-function RecipeViewModal({recipe, onClose}) {
-  const [servingMultiplier, setServingMultiplier] = useState(1);
-  const originalServes = parseFloat(recipe.serves) || 1;
-  const scaledServes = Math.round(originalServes * servingMultiplier * 10) / 10;
-  
-  return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
-      <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
-        <h2 className="text-xl font-bold">{recipe.name}</h2>
-        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded"><X className="w-5 h-5"/></button>
-      </div>
-      
-      <div className="p-4 space-y-3 overflow-y-auto flex-1">
-        {recipe.imageUrl && <img src={recipe.imageUrl} alt={recipe.name} className="w-full max-h-48 object-cover rounded"/>}
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm">
-          {recipe.prepTime && <div className="bg-gray-50 p-2 rounded"><div className="text-xs text-gray-500">Prep</div><div className="font-semibold">{recipe.prepTime}m</div></div>}
-          {recipe.cookTime && <div className="bg-gray-50 p-2 rounded"><div className="text-xs text-gray-500">Cook</div><div className="font-semibold">{recipe.cookTime}m</div></div>}
-          {recipe.serves && <div className="bg-blue-50 p-2 rounded border-2 border-blue-200"><div className="text-xs text-blue-600 font-semibold">Serves</div><div className="font-bold text-blue-700">{scaledServes}</div></div>}
-          {recipe.source && <div className="bg-gray-50 p-2 rounded"><div className="text-xs text-gray-500">Source</div><div className="font-semibold text-xs">{recipe.source}</div></div>}
-        </div>
-        
-        {recipe.serves && <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <div className="text-sm font-semibold mb-2 text-blue-800">Scale Recipe:</div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => setServingMultiplier(0.5)} className={`px-3 py-1.5 rounded text-sm font-medium ${servingMultiplier === 0.5 ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'}`}>½x</button>
-            <button onClick={() => setServingMultiplier(1)} className={`px-3 py-1.5 rounded text-sm font-medium ${servingMultiplier === 1 ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'}`}>1x</button>
-            <button onClick={() => setServingMultiplier(1.5)} className={`px-3 py-1.5 rounded text-sm font-medium ${servingMultiplier === 1.5 ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'}`}>1.5x</button>
-            <button onClick={() => setServingMultiplier(2)} className={`px-3 py-1.5 rounded text-sm font-medium ${servingMultiplier === 2 ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'}`}>2x</button>
-            <button onClick={() => setServingMultiplier(3)} className={`px-3 py-1.5 rounded text-sm font-medium ${servingMultiplier === 3 ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'}`}>3x</button>
-          </div>
-        </div>}
-        
-        {recipe.collection && <div className="flex items-center gap-2"><span className="text-sm font-semibold">Collection:</span><span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full font-medium">{recipe.collection}</span></div>}
-        
-        {recipe.keywords?.length > 0 && <div className="flex flex-wrap gap-2">{recipe.keywords.map(kw => <span key={kw} className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">{kw}</span>)}</div>}
-        
-        {(recipe.calories || recipe.protein || recipe.carbs || recipe.fat) && <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-          <div className="text-sm font-semibold mb-2 text-green-800">Nutrition per serving:</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {recipe.calories && <div className="bg-white p-2 rounded text-center border"><div className="text-xs text-gray-500">Calories</div><div className="font-bold text-green-700">{Math.round(recipe.calories * servingMultiplier / originalServes)}</div></div>}
-            {recipe.protein && <div className="bg-white p-2 rounded text-center border"><div className="text-xs text-gray-500">Protein</div><div className="font-bold text-green-700">{Math.round(recipe.protein * servingMultiplier / originalServes)}g</div></div>}
-            {recipe.carbs && <div className="bg-white p-2 rounded text-center border"><div className="text-xs text-gray-500">Carbs</div><div className="font-bold text-green-700">{Math.round(recipe.carbs * servingMultiplier / originalServes)}g</div></div>}
-            {recipe.fat && <div className="bg-white p-2 rounded text-center border"><div className="text-xs text-gray-500">Fat</div><div className="font-bold text-green-700">{Math.round(recipe.fat * servingMultiplier / originalServes)}g</div></div>}
-          </div>
-        </div>}
-        
-        {recipe.rating > 0 && <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">My Rating:</span>
-          <div className="flex gap-0.5 text-lg">
-            {[1,2,3,4,5].map(star => <span key={star} className={star <= recipe.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>)}
-          </div>
-        </div>}
-        
-        {recipe.lastMade && <div className="text-sm text-gray-600">Last made: {new Date(recipe.lastMade).toLocaleDateString()}</div>}
-        
-        {recipe.notes && <div className="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
-          <div className="text-sm font-semibold mb-1">My Notes:</div>
-          <div className="text-sm text-gray-700 whitespace-pre-wrap">{recipe.notes}</div>
-        </div>}
-        
-        {recipe.recipeLink && <div><a href={recipe.recipeLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 text-sm"><ExternalLink className="w-4 h-4"/>View Original Recipe</a></div>}
-        
-        <div>
-          <h3 className="text-base font-bold mb-2">Ingredients</h3>
-          <ul className="space-y-1 text-sm">
-            {recipe.ingredients?.map((i, idx) => <li key={idx} className="flex gap-2"><span className="text-blue-600">•</span><span><strong>{Math.round((parseFloat(i.amount) * servingMultiplier) * 100) / 100} {i.unit}</strong> {i.name}</span></li>)}
-          </ul>
-        </div>
-        
-        <div>
-          <h3 className="text-base font-bold mb-2">Steps</h3>
-          <ol className="space-y-2 text-sm">
-            {recipe.steps?.map((s, idx) => <li key={idx} className="flex gap-2"><span className="font-semibold text-blue-600 min-w-[1.5rem]">{idx + 1}.</span><span>{s}</span></li>)}
-          </ol>
-        </div>
-      </div>
-      
-      <div className="p-4 border-t flex gap-3 flex-shrink-0">
-        <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium">Close</button>
-      </div>
-    </div>
-  </div>);
-}
-
-// END OF PART 2 - CONTINUE TO PART 3
-    // PART 3 (FINAL) - Recipe Editor and Other Components
-
-function RecipeEditor({recipe, onSave, onCancel}) {
-  const [formData, setFormData] = useState({
-    name: recipe.name || '', keywords: recipe.keywords?.join(', ') || '', prepTime: recipe.prepTime || '', cookTime: recipe.cookTime || '',
-    serves: recipe.serves || '', source: recipe.source || '', recipeLink: recipe.recipeLink || '', collection: recipe.collection || '',
-    ingredients: recipe.ingredients || [{name:'',amount:'',unit:'g'}], steps: recipe.steps?.join('\n') || '', 
-    imageUrl: recipe.imageUrl || '', rating: recipe.rating || 0, notes: recipe.notes || '',
-    calories: recipe.calories || '', protein: recipe.protein || '', carbs: recipe.carbs || '', fat: recipe.fat || '',
-    lastMade: recipe.lastMade || ''
-  });
-
-  const units = ['g','kg','oz','lb','ml','l','cup','tbsp','tsp','piece','whole','each'];
-  
-  const addIng = () => setFormData({...formData, ingredients: [...formData.ingredients, {name:'',amount:'',unit:'g'}]});
-  const updateIng = (i, f, v) => { const ings = [...formData.ingredients]; ings[i][f] = v; setFormData({...formData, ingredients: ings}); };
-  const removeIng = (i) => setFormData({...formData, ingredients: formData.ingredients.filter((_, idx) => idx !== i)});
-  
-  const handleSubmit = () => {
-    if (!formData.name.trim()) return alert('Enter recipe name');
-    const validIngs = formData.ingredients.filter(ing => ing.name.trim());
-    if (validIngs.length === 0) return alert('Add at least one ingredient');
-    onSave({...recipe, name: formData.name, keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
-      prepTime: formData.prepTime, cookTime: formData.cookTime, serves: formData.serves, source: formData.source,
-      recipeLink: formData.recipeLink, ingredients: validIngs, steps: formData.steps.split('\n').filter(Boolean),
-      imageUrl: formData.imageUrl, collection: formData.collection, rating: parseInt(formData.rating) || 0,
-      notes: formData.notes, calories: parseFloat(formData.calories) || 0, protein: parseFloat(formData.protein) || 0,
-      carbs: parseFloat(formData.carbs) || 0, fat: parseFloat(formData.fat) || 0, lastMade: formData.lastMade});
+    return dates;
   };
 
-  return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto py-8">
-    <div className="bg-white rounded-lg max-w-4xl w-full my-8">
-      <div className="p-6 border-b sticky top-0 bg-white z-10"><h2 className="text-2xl font-bold">{recipe.id ? 'Edit' : 'New'} Recipe</h2></div>
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className="block font-semibold mb-1 text-red-600">Recipe Name *</label>
-            <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 border-2 rounded" placeholder="e.g. Chocolate Chip Cookies"/>
+  const [planDates, setPlanDates] = useState(generateDates(7));
+
+  useEffect(() => {
+    setPlanDates(generateDates(planDays));
+  }, [planDays]);
+
+  // New recipe template
+  const newRecipeTemplate = {
+    id: Date.now(),
+    name: '',
+    servings: 4,
+    prepTime: '',
+    cookTime: '',
+    source: '',
+    originalLink: '',
+    image: '',
+    ingredients: [''],
+    steps: [''],
+    collections: [],
+    keywords: [],
+    notes: '',
+    nutrition: { calories: '', protein: '', carbs: '', fat: '' }
+  };
+
+  const [editingRecipe, setEditingRecipe] = useState(newRecipeTemplate);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [exportData, setExportData] = useState('');
+  const [importData, setImportData] = useState('');
+
+  // Filter recipes
+  const filteredRecipes = recipes.filter(recipe => {
+    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.keywords.some(k => k.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCollection = filterCollection === 'all' || recipe.collections.includes(filterCollection);
+    return matchesSearch && matchesCollection;
+  });
+
+  // Scale recipe
+  const scaleRecipe = (recipe, newServings) => {
+    const scale = newServings / recipe.servings;
+    return {
+      ...recipe,
+      servings: newServings,
+      ingredients: recipe.ingredients.map(ing => {
+        return ing.replace(/(\d+\.?\d*)/g, match => {
+          return (parseFloat(match) * scale).toFixed(2);
+        });
+      })
+    };
+  };
+
+  const handleSaveRecipe = () => {
+    if (isEditing && selectedRecipe) {
+      setRecipes(recipes.map(r => r.id === editingRecipe.id ? editingRecipe : r));
+    } else {
+      setRecipes([...recipes, editingRecipe]);
+    }
+    setSelectedRecipe(null);
+    setIsEditing(false);
+  };
+
+  const handleDeleteRecipe = (id) => {
+    setRecipes(recipes.filter(r => r.id !== id));
+    setSelectedRecipe(null);
+  };
+
+  const handleExport = () => {
+    const data = { recipes, collections, mealPlan };
+    setExportData(JSON.stringify(data, null, 2));
+    setShowExportModal(true);
+  };
+
+  const handleImport = () => {
+    try {
+      const data = JSON.parse(importData);
+      if (data.recipes) setRecipes(data.recipes);
+      if (data.collections) setCollections(data.collections);
+      if (data.mealPlan) setMealPlan(data.mealPlan);
+      setShowImportModal(false);
+      setImportData('');
+      alert('Data imported successfully!');
+    } catch (error) {
+      alert('Error importing data. Please check the format.');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const addToMealPlan = (date, recipe) => {
+    setMealPlan({ ...mealPlan, [date]: [...(mealPlan[date] || []), recipe.id] });
+  };
+
+  const removeFromMealPlan = (date, recipeId) => {
+    setMealPlan({
+      ...mealPlan,
+      [date]: mealPlan[date].filter(id => id !== recipeId)
+    });
+  };
+
+  const generateShoppingList = () => {
+    const ingredients = new Set();
+    Object.values(mealPlan).flat().forEach(recipeId => {
+      const recipe = recipes.find(r => r.id === recipeId);
+      if (recipe) {
+        recipe.ingredients.forEach(ing => ingredients.add(ing));
+      }
+    });
+    setShoppingList(Array.from(ingredients));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
+
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b no-print">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ChefHat className="w-8 h-8 text-orange-500" />
+              <h1 className="text-2xl font-bold text-gray-800">Recipe Manager</h1>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleExport} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                <Download className="w-4 h-4" /> Export
+              </button>
+              <button onClick={() => setShowImportModal(true)} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                <Upload className="w-4 h-4" /> Import
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block font-semibold mb-1">Prep Time (minutes)</label>
-            <input type="number" value={formData.prepTime} onChange={(e) => setFormData({...formData, prepTime: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="30"/>
-          </div>
-          <div>
-            <label className="block font-semibold mb-1">Cook Time (minutes)</label>
-            <input type="number" value={formData.cookTime} onChange={(e) => setFormData({...formData, cookTime: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="45"/>
-          </div>
-          <div>
-            <label className="block font-semibold mb-1 text-blue-600">Serves (How many people?)</label>
-            <input type="text" value={formData.serves} onChange={(e) => setFormData({...formData, serves: e.target.value})} className="w-full px-3 py-2 border-2 border-blue-300 rounded" placeholder="4"/>
-          </div>
-          <div><label className="block font-semibold mb-1">Source</label><input type="text" value={formData.source} onChange={(e) => setFormData({...formData, source: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="Book, website, person"/></div>
-          <div><label className="block font-semibold mb-1">Collection</label><input type="text" value={formData.collection} onChange={(e) => setFormData({...formData, collection: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="Family Favorites, Quick Meals"/></div>
-          <div className="col-span-2"><label className="block font-semibold mb-1">Recipe Link</label><input type="url" value={formData.recipeLink} onChange={(e) => setFormData({...formData, recipeLink: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="https://example.com/recipe"/></div>
         </div>
-        <div><label className="block font-semibold mb-1">Image URL (Google Drive or any image link)</label>
-          {formData.imageUrl && <div className="mb-2"><img src={formData.imageUrl} alt="Preview" className="w-full h-48 object-cover rounded" onError={(e) => {e.target.style.display='none'}}/></div>}
-          <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({...formData, imageUrl: e.target.value})} placeholder="https://lh3.googleusercontent.com/d/FILE_ID" className="w-full px-3 py-2 border rounded"/>
-          <p className="text-xs text-gray-500 mt-1">Use: https://lh3.googleusercontent.com/d/FILE_ID</p>
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Keywords (comma-separated)</label>
-          <input type="text" value={formData.keywords} onChange={(e) => setFormData({...formData, keywords: e.target.value})} placeholder="vegetarian, quick, dinner" className="w-full px-3 py-2 border rounded"/>
-        </div>
-        
-        <div className="border-t pt-4">
-          <label className="block font-semibold mb-2">Nutrition (per serving)</label>
-          <div className="grid grid-cols-4 gap-3">
-            <div><label className="block text-xs text-gray-600 mb-1">Calories</label><input type="number" value={formData.calories} onChange={(e) => setFormData({...formData, calories: e.target.value})} placeholder="450" className="w-full px-3 py-2 border rounded"/></div>
-            <div><label className="block text-xs text-gray-600 mb-1">Protein (g)</label><input type="number" value={formData.protein} onChange={(e) => setFormData({...formData, protein: e.target.value})} placeholder="25" className="w-full px-3 py-2 border rounded"/></div>
-            <div><label className="block text-xs text-gray-600 mb-1">Carbs (g)</label><input type="number" value={formData.carbs} onChange={(e) => setFormData({...formData, carbs: e.target.value})} placeholder="30" className="w-full px-3 py-2 border rounded"/></div>
-            <div><label className="block text-xs text-gray-600 mb-1">Fat (g)</label><input type="number" value={formData.fat} onChange={(e) => setFormData({...formData, fat: e.target.value})} placeholder="15" className="w-full px-3 py-2 border rounded"/></div>
+      </header>
+
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm border-b no-print">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex gap-1">
+            {[
+              { id: 'recipes', icon: Book, label: 'Recipes' },
+              { id: 'mealplan', icon: Calendar, label: 'Meal Plan' },
+              { id: 'shopping', icon: ShoppingCart, label: 'Shopping List' }
+            ].map(view => (
+              <button
+                key={view.id}
+                onClick={() => setActiveView(view.id)}
+                className={`px-6 py-3 flex items-center gap-2 border-b-2 transition-colors ${
+                  activeView === view.id
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <view.icon className="w-4 h-4" />
+                {view.label}
+              </button>
+            ))}
           </div>
         </div>
-        
-        <div className="border-t pt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-semibold mb-2">Rating</label>
-              <div className="flex gap-2">
-                {[1,2,3,4,5].map(star => (
-                  <button key={star} type="button" onClick={() => setFormData({...formData, rating: star})} className={`text-2xl ${star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400`}>★</button>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Recipes View */}
+        {activeView === 'recipes' && (
+          <>
+            <div className="flex gap-4 mb-6 no-print">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search recipes or keywords..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+              <select
+                value={filterCollection}
+                onChange={(e) => setFilterCollection(e.target.value)}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+              >
+                <option value="all">All Collections</option>
+                {collections.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+              <button
+                onClick={() => {
+                  setEditingRecipe({ ...newRecipeTemplate, id: Date.now() });
+                  setIsEditing(true);
+                  setSelectedRecipe({});
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add Recipe
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredRecipes.map(recipe => (
+                <div key={recipe.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                  {recipe.image && (
+                    <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover" />
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-2">{recipe.name}</h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" /> {recipe.prepTime + recipe.cookTime}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-4 h-4" /> {recipe.servings}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedRecipe(recipe)}
+                        className="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingRecipe(recipe);
+                          setIsEditing(true);
+                          setSelectedRecipe(recipe);
+                        }}
+                        className="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Meal Plan View */}
+        {activeView === 'mealplan' && (
+          <>
+            <div className="flex gap-4 mb-6 no-print">
+              <select
+                value={planDays}
+                onChange={(e) => setPlanDays(Number(e.target.value))}
+                className="px-4 py-2 border rounded-lg"
+              >
+                <option value={7}>7 Days</option>
+                <option value={14}>14 Days</option>
+              </select>
+              <button
+                onClick={generateShoppingList}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Generate Shopping List
+              </button>
+            </div>
+
+            <div className="grid gap-4">
+              {planDates.map(date => (
+                <div key={date} className="bg-white rounded-xl shadow-sm p-4">
+                  <h3 className="font-semibold mb-3">
+                    {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(mealPlan[date] || []).map(recipeId => {
+                      const recipe = recipes.find(r => r.id === recipeId);
+                      return recipe ? (
+                        <div key={recipeId} className="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-lg">
+                          <span className="text-sm">{recipe.name}</span>
+                          <button
+                            onClick={() => removeFromMealPlan(date, recipeId)}
+                            className="text-gray-400 hover:text-gray-600 no-print"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        addToMealPlan(date, recipes.find(r => r.id === Number(e.target.value)));
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg text-sm no-print"
+                  >
+                    <option value="">+ Add recipe to this day</option>
+                    {recipes.map(recipe => (
+                      <option key={recipe.id} value={recipe.id}>{recipe.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Shopping List View */}
+        {activeView === 'shopping' && (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4 no-print">
+              <h2 className="text-xl font-semibold">Shopping List</h2>
+              <button onClick={handlePrint} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                <Printer className="w-4 h-4" /> Print
+              </button>
+            </div>
+            {shoppingList.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No items in shopping list. Generate from meal plan.</p>
+            ) : (
+              <ul className="space-y-2">
+                {shoppingList.map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-3 py-2 border-b">
+                    <input type="checkbox" className="w-4 h-4 no-print" />
+                    <span>{item}</span>
+                  </li>
                 ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Recipe Detail/Edit Modal */}
+      {selectedRecipe && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col">
+            <div className="bg-white border-b px-6 py-4 flex justify-between items-center flex-shrink-0">
+              <h2 className="text-2xl font-bold">
+                {isEditing ? (editingRecipe.name || 'New Recipe') : selectedRecipe.name}
+              </h2>
+              <div className="flex gap-2">
+                {!isEditing && selectedRecipe.id && (
+                  <>
+                    <button onClick={handlePrint} className="p-2 hover:bg-gray-100 rounded-lg">
+                      <Printer className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this recipe?')) handleDeleteRecipe(selectedRecipe.id);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg text-red-500"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+                <button onClick={() => setSelectedRecipe(null)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
-            <div>
-              <label className="block font-semibold mb-1">Last Made</label>
-              <input type="date" value={formData.lastMade} onChange={(e) => setFormData({...formData, lastMade: e.target.value})} className="w-full px-3 py-2 border rounded"/>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              {isEditing ? (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Recipe Name"
+                    value={editingRecipe.name}
+                    onChange={(e) => setEditingRecipe({ ...editingRecipe, name: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg text-xl font-semibold"
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Servings</label>
+                      <input
+                        type="number"
+                        value={editingRecipe.servings}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, servings: Number(e.target.value) })}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Prep Time</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., 15 min"
+                        value={editingRecipe.prepTime}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, prepTime: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Cook Time</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., 30 min"
+                        value={editingRecipe.cookTime}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, cookTime: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Source</label>
+                      <input
+                        type="text"
+                        value={editingRecipe.source}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, source: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Original Link</label>
+                    <input
+                      type="url"
+                      value={editingRecipe.originalLink}
+                      onChange={(e) => setEditingRecipe({ ...editingRecipe, originalLink: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Image URL</label>
+                    <input
+                      type="url"
+                      value={editingRecipe.image}
+                      onChange={(e) => setEditingRecipe({ ...editingRecipe, image: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Collections</label>
+                    <div className="flex flex-wrap gap-2">
+                      {collections.map(col => (
+                        <label key={col} className="flex items-center gap-2 px-3 py-1 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={editingRecipe.collections.includes(col)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditingRecipe({ ...editingRecipe, collections: [...editingRecipe.collections, col] });
+                              } else {
+                                setEditingRecipe({ ...editingRecipe, collections: editingRecipe.collections.filter(c => c !== col) });
+                              }
+                            }}
+                          />
+                          {col}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Keywords (comma separated)</label>
+                    <input
+                      type="text"
+                      value={editingRecipe.keywords.join(', ')}
+                      onChange={(e) => setEditingRecipe({ ...editingRecipe, keywords: e.target.value.split(',').map(k => k.trim()) })}
+                      className="w-full px-4 py-2 border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Ingredients</label>
+                    {editingRecipe.ingredients.map((ing, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={ing}
+                          onChange={(e) => {
+                            const newIngs = [...editingRecipe.ingredients];
+                            newIngs[idx] = e.target.value;
+                            setEditingRecipe({ ...editingRecipe, ingredients: newIngs });
+                          }}
+                          className="flex-1 px-4 py-2 border rounded-lg"
+                        />
+                        <button
+                          onClick={() => setEditingRecipe({ ...editingRecipe, ingredients: editingRecipe.ingredients.filter((_, i) => i !== idx) })}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setEditingRecipe({ ...editingRecipe, ingredients: [...editingRecipe.ingredients, ''] })}
+                      className="px-4 py-2 border border-dashed rounded-lg w-full hover:bg-gray-50"
+                    >
+                      + Add Ingredient
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Steps</label>
+                    {editingRecipe.steps.map((step, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2">
+                        <span className="px-3 py-2 bg-gray-100 rounded-lg">{idx + 1}</span>
+                        <textarea
+                          value={step}
+                          onChange={(e) => {
+                            const newSteps = [...editingRecipe.steps];
+                            newSteps[idx] = e.target.value;
+                            setEditingRecipe({ ...editingRecipe, steps: newSteps });
+                          }}
+                          className="flex-1 px-4 py-2 border rounded-lg"
+                          rows="2"
+                        />
+                        <button
+                          onClick={() => setEditingRecipe({ ...editingRecipe, steps: editingRecipe.steps.filter((_, i) => i !== idx) })}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setEditingRecipe({ ...editingRecipe, steps: [...editingRecipe.steps, ''] })}
+                      className="px-4 py-2 border border-dashed rounded-lg w-full hover:bg-gray-50"
+                    >
+                      + Add Step
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Notes</label>
+                    <textarea
+                      value={editingRecipe.notes}
+                      onChange={(e) => setEditingRecipe({ ...editingRecipe, notes: e.target.value })}
+                      className="w-full px-4 py-2 border rounded-lg"
+                      rows="2"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {selectedRecipe.image && (
+                    <img src={selectedRecipe.image} alt={selectedRecipe.name} className="w-full h-64 object-cover rounded-lg" />
+                  )}
+                  
+                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Prep: {selectedRecipe.prepTime}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Cook: {selectedRecipe.cookTime}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {selectedRecipe.servings} servings
+                    </span>
+                  </div>
+
+                  {selectedRecipe.source && (
+                    <div className="text-sm">
+                      <span className="font-medium">Source:</span> {selectedRecipe.source}
+                      {selectedRecipe.originalLink && (
+                        <a href={selectedRecipe.originalLink} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline ml-2">
+                          View Original
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
+                    <ul className="space-y-2">
+                      {selectedRecipe.ingredients.map((ing, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-orange-500 mt-1">•</span>
+                          <span>{ing}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Steps</h3>
+                    <ol className="space-y-3">
+                      {selectedRecipe.steps.map((step, idx) => (
+                        <li key={idx} className="flex gap-3">
+                          <span className="font-semibold text-orange-500">{idx + 1}.</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {selectedRecipe.notes && (
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">Notes</h3>
+                      <p className="text-gray-700">{selectedRecipe.notes}</p>
+                    </div>
+                  )}
+
+                  {selectedRecipe.collections.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">Collections</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedRecipe.collections.map(col => (
+                          <span key={col} className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-sm">
+                            {col}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {isEditing && (
+              <div className="px-6 py-4 border-t flex gap-3 flex-shrink-0 bg-white">
+                <button
+                  onClick={handleSaveRecipe}
+                  className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium"
+                >
+                  Save Recipe
+                </button>
+                <button
+                  onClick={() => setSelectedRecipe(null)}
+                  className="px-6 py-3 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold">Export Data</h2>
+              <button onClick={() => setShowExportModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex-1 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">Copy this JSON data and save it to a file for backup:</p>
+              <textarea
+                value={exportData}
+                readOnly
+                className="w-full h-96 px-4 py-2 border rounded-lg font-mono text-sm"
+                onClick={(e) => e.target.select()}
+              />
+            </div>
+            <div className="px-6 py-4 border-t flex gap-3">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(exportData);
+                  alert('Copied to clipboard!');
+                }}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Copy to Clipboard
+              </button>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
-        
-        <div>
-          <label className="block font-semibold mb-1">My Notes</label>
-          <textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} className="w-full px-3 py-2 border rounded h-24" placeholder="Personal tips, substitutions, family preferences..."/>
-        </div>
-        
-        <div><label className="block font-semibold mb-2">Ingredients *</label>
-          <div className="space-y-2">
-            {formData.ingredients.map((ing, i) => <div key={i} className="flex gap-2">
-              <input type="number" value={ing.amount} onChange={(e) => updateIng(i, 'amount', e.target.value)} placeholder="250" className="w-24 px-3 py-2 border rounded"/>
-              <select value={ing.unit} onChange={(e) => updateIng(i, 'unit', e.target.value)} className="w-28 px-3 py-2 border rounded">{units.map(u => <option key={u} value={u}>{u}</option>)}</select>
-              <input type="text" value={ing.name} onChange={(e) => updateIng(i, 'name', e.target.value)} placeholder="flour" className="flex-1 px-3 py-2 border rounded"/>
-              <button onClick={() => removeIng(i)} className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200"><X className="w-4 h-4"/></button>
-            </div>)}
-            <button onClick={addIng} className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200"><Plus className="w-4 h-4"/>Add</button>
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold">Import Data</h2>
+              <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex-1 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">Paste your exported JSON data below:</p>
+              <textarea
+                value={importData}
+                onChange={(e) => setImportData(e.target.value)}
+                placeholder='Paste JSON data here...'
+                className="w-full h-96 px-4 py-2 border rounded-lg font-mono text-sm"
+              />
+            </div>
+            <div className="px-6 py-4 border-t flex gap-3">
+              <button
+                onClick={handleImport}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Import Data
+              </button>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportData('');
+                }}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-        <div><label className="block font-semibold mb-1">Steps (one per line) *</label><textarea value={formData.steps} onChange={(e) => setFormData({...formData, steps: e.target.value})} className="w-full px-3 py-2 border rounded h-32" placeholder="1. Preheat oven&#10;2. Mix ingredients..."/></div>
-      </div>
-      <div className="flex gap-3 p-6 border-t sticky bottom-0 bg-white">
-        <button onClick={handleSubmit} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-        <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
-      </div>
+      )}
     </div>
-  </div>);
-}
+  );
+};
 
-function MealPlanView({getWeekDays, getMealsForDay, recipes, mealPlan, setMealPlan, mealPlanView, setMealPlanView, setPrintMealPlan, generateShoppingList}) {
-  return (<div>
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-xl font-bold">Meal Plan</h2>
-      <div className="flex gap-2">
-        <select value={mealPlanView} onChange={(e) => setMealPlanView(e.target.value)} className="px-3 py-2 border rounded">
-          <option value="rolling">Next 7 Days</option>
-          <option value="thisWeek">This Week (Mon-Sun)</option>
-          <option value="nextWeek">Next Week (Mon-Sun)</option>
-          <option value="twoWeeks">Next 2 Weeks</option>
-        </select>
-        <button onClick={() => setPrintMealPlan(true)} className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"><Printer className="w-4 h-4"/>Print</button>
-        <button onClick={generateShoppingList} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"><ShoppingCart className="w-4 h-4"/>Shopping List</button>
-      </div>
-    </div>
-    <div className="space-y-4">{getWeekDays().map(day => {
-      const meals = getMealsForDay(day.date);
-      return <div key={day.date} className="bg-white rounded-lg shadow">
-        <div className="bg-gray-100 px-4 py-3 font-semibold border-b">{day.display}</div>
-        <div className="p-4">{['breakfast','lunch','dinner','snack'].map(mt => {
-          const m = meals.find(m => m.mealType === mt);
-          const r = m ? recipes.find(r => r.id === m.recipeId) : null;
-          return <div key={mt} className="flex items-center gap-4 py-2 border-b last:border-b-0">
-            <div className="w-24 text-sm font-medium text-gray-600 capitalize">{mt}</div>
-            {m && r ? <div className="flex-1 flex items-center justify-between">
-              <div><div className="font-medium">{r.name}</div>{r.prepTime && r.cookTime && <div className="text-xs text-gray-500">{parseInt(r.prepTime)+parseInt(r.cookTime)} min</div>}</div>
-              <button onClick={() => setMealPlan(prev => prev.filter(meal => meal !== m))} className="p-2 text-red-600 hover:bg-red-50 rounded"><X className="w-4 h-4"/></button>
-            </div> : <div className="flex-1 text-sm text-gray-400">No meal</div>}
-          </div>;
-        })}</div>
-      </div>;
-    })}</div>
-    {mealPlan.length === 0 && <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">No meals planned.</div>}
-  </div>);
-}
-
-function ShoppingView({shoppingList, setShoppingList, setPrintShoppingList}) {
-  return (<div>
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-xl font-bold">Shopping List</h2>
-      <button onClick={() => setPrintShoppingList(true)} className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"><Printer className="w-4 h-4"/>Print</button>
-    </div>
-    <div className="bg-white rounded-lg shadow p-4">
-      {shoppingList.map((item, idx) => <div key={idx} className="flex items-center gap-3 py-2 border-b last:border-b-0">
-        <input type="checkbox" checked={item.checked} onChange={() => setShoppingList(prev => prev.map((it, i) => i === idx ? {...it, checked: !it.checked} : it))} className="w-5 h-5"/>
-        <span className={item.checked ? 'line-through text-gray-400' : ''}>{item.amount} {item.unit} {item.name}</span>
-      </div>)}
-      {shoppingList.length === 0 && <div className="py-8 text-center text-gray-500">No items.</div>}
-    </div>
-  </div>);
-}
-
-function ExportModal({exportData, copyToClipboard, onClose}) {
-  return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-      <h2 className="text-xl font-bold mb-4">Export Your Recipes</h2>
-      <p className="text-sm text-gray-600 mb-4">Copy this data and save it to a text file in Google Drive for backup.</p>
-      <textarea value={exportData} readOnly className="w-full h-64 px-3 py-2 border rounded font-mono text-xs mb-4" onClick={(e) => e.target.select()}/>
-      <div className="flex gap-3">
-        <button onClick={copyToClipboard} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Copy className="w-4 h-4"/>Copy</button>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
-      </div>
-    </div>
-  </div>);
-}
-
-function ImportModal({onImport, onCancel}) {
-  const [importText, setImportText] = useState('');
-  return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-      <h2 className="text-xl font-bold mb-4">Import Your Recipes</h2>
-      <p className="text-sm text-gray-600 mb-4">Paste your exported JSON data:</p>
-      <textarea value={importText} onChange={(e) => setImportText(e.target.value)} placeholder="Paste here..." className="w-full h-64 px-3 py-2 border rounded font-mono text-xs mb-4"/>
-      <div className="flex gap-3">
-        <button onClick={() => onImport(importText)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Import</button>
-        <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
-      </div>
-    </div>
-  </div>);
-}
-
-function MealPlanModal({recipe, onAdd, onCancel, getWeekDays}) {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMealType, setSelectedMealType] = useState('dinner');
-  const weekDays = getWeekDays();
-  return (<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-lg max-w-md w-full p-6">
-      <h2 className="text-xl font-bold mb-4">Add to Meal Plan</h2>
-      <p className="text-sm text-gray-600 mb-4"><strong>{recipe.name}</strong></p>
-      <div className="space-y-4">
-        <div><label className="block font-semibold mb-2">Day</label>
-          <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full px-3 py-2 border rounded">
-            {weekDays.map(d => <option key={d.date} value={d.date}>{d.display}</option>)}
-          </select>
-        </div>
-        <div><label className="block font-semibold mb-2">Meal</label>
-          <div className="grid grid-cols-2 gap-2">
-            {['breakfast','lunch','dinner','snack'].map(m => <button key={m} onClick={() => setSelectedMealType(m)} className={`px-4 py-2 rounded capitalize ${selectedMealType === m ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{m}</button>)}
-          </div>
-        </div>
-      </div>
-      <div className="flex gap-3 mt-6">
-        <button onClick={() => onAdd(recipe.id, selectedDate, selectedMealType)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
-        <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
-      </div>
-    </div>
-  </div>);
-}
-
-function PrintRecipeView({recipe, onClose}) {
-  return (<div className="fixed inset-0 bg-white z-50 overflow-auto">
-    <style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:0}}.print-container{font-family:Arial,sans-serif;font-size:10pt}.recipe-half{height:50vh;padding:1cm;box-sizing:border-box}.recipe-half h1{font-size:14pt;margin:0 0 .3cm;border-bottom:2px solid #333;padding-bottom:.2cm}.recipe-half .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.2cm;margin-bottom:.4cm;font-size:9pt}.recipe-half .keywords{color:#666;font-size:8pt;margin-bottom:.3cm}.recipe-half h2{font-size:11pt;margin:.4cm 0 .2cm;color:#333}.recipe-half ul,.recipe-half ol{margin:0;padding-left:1.2em}.recipe-half li{margin-bottom:.15cm;font-size:9pt}.recipe-half .nutrition{font-size:8pt;color:#666;margin-top:.3cm;padding-top:.3cm;border-top:1px solid #ccc}.cut-line{text-align:center;color:#999;font-size:8pt;padding:.2cm 0;border-top:1px dashed #999}`}</style>
-    <div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3">
-      <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print</button>
-      <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
-    </div>
-    <div className="print-container">
-      <div className="recipe-half">
-        <h1>{recipe.name}</h1>
-        <div className="info-grid">
-          {recipe.prepTime && <div><strong>Prep:</strong> {recipe.prepTime} min</div>}
-          {recipe.cookTime && <div><strong>Cook:</strong> {recipe.cookTime} min</div>}
-          {recipe.serves && <div><strong>Serves:</strong> {recipe.serves}</div>}
-          {recipe.source && <div><strong>Source:</strong> {recipe.source}</div>}
-        </div>
-        {recipe.keywords?.length > 0 && <div className="keywords">{recipe.keywords.join(', ')}</div>}
-        <h2>Ingredients</h2>
-        <ul>{recipe.ingredients?.map((i, idx) => <li key={idx}>{i.amount} {i.unit} {i.name}</li>)}</ul>
-        <h2>Steps</h2>
-        <ol>{recipe.steps?.map((s, idx) => <li key={idx}>{s}</li>)}</ol>
-        {(recipe.calories || recipe.protein) && <div className="nutrition">Nutrition: {recipe.calories}cal {recipe.protein}g protein</div>}
-      </div>
-      <div className="cut-line">✂ Cut along this line ✂</div>
-      <div className="recipe-half">
-        <h1>{recipe.name}</h1>
-        <div className="info-grid">
-          {recipe.prepTime && <div><strong>Prep:</strong> {recipe.prepTime} min</div>}
-          {recipe.cookTime && <div><strong>Cook:</strong> {recipe.cookTime} min</div>}
-          {recipe.serves && <div><strong>Serves:</strong> {recipe.serves}</div>}
-          {recipe.source && <div><strong>Source:</strong> {recipe.source}</div>}
-        </div>
-        {recipe.keywords?.length > 0 && <div className="keywords">{recipe.keywords.join(', ')}</div>}
-        <h2>Ingredients</h2>
-        <ul>{recipe.ingredients?.map((i, idx) => <li key={idx}>{i.amount} {i.unit} {i.name}</li>)}</ul>
-        <h2>Steps</h2>
-        <ol>{recipe.steps?.map((s, idx) => <li key={idx}>{s}</li>)}</ol>
-        {(recipe.calories || recipe.protein) && <div className="nutrition">Nutrition: {recipe.calories}cal {recipe.protein}g protein</div>}
-      </div>
-    </div>
-  </div>);
-}
-
-function PrintMealPlanView({weekDays, mealPlan, recipes, onClose}) {
-  const getMealsForDay = (date) => mealPlan.filter(m => m.date === date);
-  return (<div className="fixed inset-0 bg-white z-50 overflow-auto">
-    <style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:1.5cm}}.meal-plan-print{font-family:Arial,sans-serif;padding:1cm}.meal-plan-print h1{font-size:18pt;margin-bottom:1cm;text-align:center;border-bottom:3px solid #333;padding-bottom:.5cm}.day-section{margin-bottom:.8cm;page-break-inside:avoid}.day-header{font-size:14pt;font-weight:bold;background:#f0f0f0;padding:.3cm;margin-bottom:.3cm}.meal-row{display:grid;grid-template-columns:120px 1fr;padding:.2cm 0;border-bottom:1px solid #ddd}.meal-type{font-weight:bold;text-transform:capitalize}.meal-name{color:#333}.meal-time{font-size:9pt;color:#666}`}</style>
-    <div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3">
-      <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print</button>
-      <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
-    </div>
-    <div className="meal-plan-print">
-      <h1>Meal Plan</h1>
-      {weekDays.map(day => {
-        const meals = getMealsForDay(day.date);
-        return (<div key={day.date} className="day-section">
-          <div className="day-header">{day.display}</div>
-          {['breakfast','lunch','dinner','snack'].map(mt => {
-            const m = meals.find(meal => meal.mealType === mt);
-            const r = m ? recipes.find(rec => rec.id === m.recipeId) : null;
-            return (<div key={mt} className="meal-row">
-              <div className="meal-type">{mt}</div>
-              <div>
-                {r ? (<><div className="meal-name">{r.name}</div>{r.prepTime && r.cookTime && <div className="meal-time">{parseInt(r.prepTime)+parseInt(r.cookTime)} min</div>}</>):(<div style={{color:'#999'}}>—</div>)}
-              </div>
-            </div>);
-          })}
-        </div>);
-      })}
-    </div>
-  </div>);
-}
-
-function PrintShoppingListView({shoppingList, onClose}) {
-  return (<div className="fixed inset-0 bg-white z-50 overflow-auto">
-    <style>{`@media print{.no-print{display:none!important}@page{size:A4;margin:1.5cm}}.shopping-list-print{font-family:Arial,sans-serif;padding:1cm}.shopping-list-print h1{font-size:18pt;margin-bottom:1cm;text-align:center;border-bottom:3px solid #333;padding-bottom:.5cm}.shopping-item{display:flex;align-items:center;padding:.3cm 0;border-bottom:1px solid #ddd;font-size:11pt}.checkbox{width:.5cm;height:.5cm;border:2px solid #333;margin-right:.5cm;flex-shrink:0}`}</style>
-    <div className="no-print fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg border-2 border-gray-300 flex gap-3">
-      <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"><Printer className="w-4 h-4"/>Print</button>
-      <button onClick={onClose} className
-        <function_calls>
-<invoke name="artifacts">
-<parameter name="command">update</parameter>
-<parameter name="id">recipe-part-3</parameter>
-<parameter name="new_str">="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button>
-</div>
-<div className="shopping-list-print">
-<h1>Shopping List</h1>
-{shoppingList.map((item, idx) => (<div key={idx} className="shopping-item"><div className="checkbox"></div><div>{item.amount} {item.unit} {item.name}</div></div>))}
-{shoppingList.length === 0 && <div style={{textAlign:'center',color:'#999',marginTop:'2cm'}}>No items</div>}
-</div>
-  </div>);
-}
-      </script>
-</body>
-</html></parameter>
-<parameter name="old_str">="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Close</button></parameter>
-</invoke>
+export default RecipeManager;
