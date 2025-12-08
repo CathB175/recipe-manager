@@ -78,7 +78,7 @@ const RecipeManager = () => {
   };
 
   const handleSaveRecipe = () => {
-    if (isEditing && selectedRecipe) {
+    if (isEditing && selectedRecipe && selectedRecipe.id) {
       setRecipes(recipes.map(r => r.id === editingRecipe.id ? editingRecipe : r));
     } else {
       setRecipes([...recipes, editingRecipe]);
@@ -239,7 +239,7 @@ const RecipeManager = () => {
                     <h3 className="font-semibold text-lg mb-2">{recipe.name}</h3>
                     <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> {recipe.prepTime + recipe.cookTime}
+                        <Clock className="w-4 h-4" /> {recipe.prepTime} + {recipe.cookTime}
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" /> {recipe.servings}
@@ -247,7 +247,10 @@ const RecipeManager = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setSelectedRecipe(recipe)}
+                        onClick={() => {
+                          setSelectedRecipe(recipe);
+                          setIsEditing(false);
+                        }}
                         className="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
                       >
                         View
