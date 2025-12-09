@@ -363,7 +363,7 @@ const RecipeManager = () => {
       {/* Recipe Detail/Edit Modal */}
       {selectedRecipe && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no-print">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
             <div className="bg-white border-b px-6 py-4 flex justify-between items-center flex-shrink-0">
               <h2 className="text-2xl font-bold">
                 {isEditing ? (editingRecipe.name || 'New Recipe') : selectedRecipe.name}
@@ -392,81 +392,85 @@ const RecipeManager = () => {
 
             <div className="p-6 overflow-y-auto flex-1">
               {isEditing ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <input
                     type="text"
                     placeholder="Recipe Name"
                     value={editingRecipe.name}
                     onChange={(e) => setEditingRecipe({ ...editingRecipe, name: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg text-xl font-semibold"
+                    className="w-full px-4 py-2 border rounded-lg text-lg font-semibold"
                   />
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-4 gap-3">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Servings</label>
+                      <label className="block text-xs font-medium mb-1">Servings</label>
                       <input
                         type="number"
                         value={editingRecipe.servings}
                         onChange={(e) => setEditingRecipe({ ...editingRecipe, servings: Number(e.target.value) })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Prep Time</label>
+                      <label className="block text-xs font-medium mb-1">Prep Time</label>
                       <input
                         type="text"
-                        placeholder="e.g., 15 min"
+                        placeholder="15 min"
                         value={editingRecipe.prepTime}
                         onChange={(e) => setEditingRecipe({ ...editingRecipe, prepTime: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Cook Time</label>
+                      <label className="block text-xs font-medium mb-1">Cook Time</label>
                       <input
                         type="text"
-                        placeholder="e.g., 30 min"
+                        placeholder="30 min"
                         value={editingRecipe.cookTime}
                         onChange={(e) => setEditingRecipe({ ...editingRecipe, cookTime: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Source</label>
+                      <label className="block text-xs font-medium mb-1">Source</label>
                       <input
                         type="text"
+                        placeholder="Optional"
                         value={editingRecipe.source}
                         onChange={(e) => setEditingRecipe({ ...editingRecipe, source: e.target.value })}
-                        className="w-full px-4 py-2 border rounded-lg"
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Original Link (optional)</label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editingRecipe.originalLink}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, originalLink: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Image URL (optional)</label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={editingRecipe.image}
+                        onChange={(e) => setEditingRecipe({ ...editingRecipe, image: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Original Link</label>
-                    <input
-                      type="url"
-                      value={editingRecipe.originalLink}
-                      onChange={(e) => setEditingRecipe({ ...editingRecipe, originalLink: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Image URL</label>
-                    <input
-                      type="url"
-                      value={editingRecipe.image}
-                      onChange={(e) => setEditingRecipe({ ...editingRecipe, image: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Collections</label>
+                    <label className="block text-xs font-medium mb-1">Collections</label>
                     <div className="flex flex-wrap gap-2">
                       {collections.map(col => (
-                        <label key={col} className="flex items-center gap-2 px-3 py-1 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <label key={col} className="flex items-center gap-1 px-2 py-1 border rounded-lg cursor-pointer hover:bg-gray-50 text-sm">
                           <input
                             type="checkbox"
                             checked={editingRecipe.collections.includes(col)}
@@ -485,109 +489,121 @@ const RecipeManager = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Keywords (comma separated)</label>
+                    <label className="block text-xs font-medium mb-1">Keywords (comma separated, optional)</label>
                     <input
                       type="text"
+                      placeholder="italian, pasta, quick"
                       value={editingRecipe.keywords.join(', ')}
                       onChange={(e) => setEditingRecipe({ ...editingRecipe, keywords: e.target.value.split(',').map(k => k.trim()) })}
-                      className="w-full px-4 py-2 border rounded-lg"
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Ingredients</label>
-                    {editingRecipe.ingredients.map((ing, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={ing}
-                          onChange={(e) => {
-                            const newIngs = [...editingRecipe.ingredients];
-                            newIngs[idx] = e.target.value;
-                            setEditingRecipe({ ...editingRecipe, ingredients: newIngs });
-                          }}
-                          className="flex-1 px-4 py-2 border rounded-lg"
-                        />
-                        <button
-                          onClick={() => setEditingRecipe({ ...editingRecipe, ingredients: editingRecipe.ingredients.filter((_, i) => i !== idx) })}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    <label className="block text-xs font-medium mb-1">Ingredients</label>
+                    <div className="max-h-40 overflow-y-auto border rounded-lg p-2">
+                      {editingRecipe.ingredients.map((ing, idx) => (
+                        <div key={idx} className="flex gap-2 mb-1">
+                          <input
+                            type="text"
+                            placeholder="e.g., 2 cups flour"
+                            value={ing}
+                            onChange={(e) => {
+                              const newIngs = [...editingRecipe.ingredients];
+                              newIngs[idx] = e.target.value;
+                              setEditingRecipe({ ...editingRecipe, ingredients: newIngs });
+                            }}
+                            className="flex-1 px-3 py-1 border rounded text-sm"
+                          />
+                          <button
+                            onClick={() => setEditingRecipe({ ...editingRecipe, ingredients: editingRecipe.ingredients.filter((_, i) => i !== idx) })}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                     <button
                       onClick={() => setEditingRecipe({ ...editingRecipe, ingredients: [...editingRecipe.ingredients, ''] })}
-                      className="px-4 py-2 border border-dashed rounded-lg w-full hover:bg-gray-50"
+                      className="mt-1 px-3 py-1 border border-dashed rounded-lg w-full hover:bg-gray-50 text-sm"
                     >
                       + Add Ingredient
                     </button>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Steps</label>
-                    {editingRecipe.steps.map((step, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <span className="px-3 py-2 bg-gray-100 rounded-lg">{idx + 1}</span>
-                        <textarea
-                          value={step}
-                          onChange={(e) => {
-                            const newSteps = [...editingRecipe.steps];
-                            newSteps[idx] = e.target.value;
-                            setEditingRecipe({ ...editingRecipe, steps: newSteps });
-                          }}
-                          className="flex-1 px-4 py-2 border rounded-lg"
-                          rows="2"
-                        />
-                        <button
-                          onClick={() => setEditingRecipe({ ...editingRecipe, steps: editingRecipe.steps.filter((_, i) => i !== idx) })}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    <label className="block text-xs font-medium mb-1">Steps</label>
+                    <div className="max-h-40 overflow-y-auto border rounded-lg p-2">
+                      {editingRecipe.steps.map((step, idx) => (
+                        <div key={idx} className="flex gap-2 mb-1">
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{idx + 1}</span>
+                          <input
+                            type="text"
+                            placeholder="Describe this step..."
+                            value={step}
+                            onChange={(e) => {
+                              const newSteps = [...editingRecipe.steps];
+                              newSteps[idx] = e.target.value;
+                              setEditingRecipe({ ...editingRecipe, steps: newSteps });
+                            }}
+                            className="flex-1 px-3 py-1 border rounded text-sm"
+                          />
+                          <button
+                            onClick={() => setEditingRecipe({ ...editingRecipe, steps: editingRecipe.steps.filter((_, i) => i !== idx) })}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                     <button
                       onClick={() => setEditingRecipe({ ...editingRecipe, steps: [...editingRecipe.steps, ''] })}
-                      className="px-4 py-2 border border-dashed rounded-lg w-full hover:bg-gray-50"
+                      className="mt-1 px-3 py-1 border border-dashed rounded-lg w-full hover:bg-gray-50 text-sm"
                     >
                       + Add Step
                     </button>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">Notes</label>
+                    <label className="block text-xs font-medium mb-1">Notes (optional)</label>
                     <textarea
+                      placeholder="Any additional notes or tips..."
                       value={editingRecipe.notes}
                       onChange={(e) => setEditingRecipe({ ...editingRecipe, notes: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg"
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
                       rows="2"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {selectedRecipe.image && (
-                    <img src={selectedRecipe.image} alt={selectedRecipe.name} className="w-full h-64 object-cover rounded-lg" />
+                    <img src={selectedRecipe.image} alt={selectedRecipe.name} className="w-full h-48 object-cover rounded-lg" />
                   )}
                   
-                  <div className="flex items-center gap-6 text-sm text-gray-600">
-                    <span className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Prep: {selectedRecipe.prepTime}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Cook: {selectedRecipe.cookTime}
-                    </span>
-                    <span className="flex items-center gap-2">
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    {selectedRecipe.prepTime && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        Prep: {selectedRecipe.prepTime}
+                      </span>
+                    )}
+                    {selectedRecipe.cookTime && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        Cook: {selectedRecipe.cookTime}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
                       {selectedRecipe.servings} servings
                     </span>
                   </div>
 
                   {selectedRecipe.source && (
-                    <div className="text-sm">
+                    <div className="text-sm text-gray-600">
                       <span className="font-medium">Source:</span> {selectedRecipe.source}
                       {selectedRecipe.originalLink && (
                         <a href={selectedRecipe.originalLink} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline ml-2">
@@ -598,11 +614,11 @@ const RecipeManager = () => {
                   )}
 
                   <div>
-                    <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
-                    <ul className="space-y-2">
+                    <h3 className="font-semibold text-base mb-2">Ingredients</h3>
+                    <ul className="space-y-1">
                       {selectedRecipe.ingredients.map((ing, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-orange-500 mt-1">•</span>
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <span className="text-orange-500 mt-0.5">•</span>
                           <span>{ing}</span>
                         </li>
                       ))}
@@ -610,11 +626,11 @@ const RecipeManager = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-lg mb-3">Steps</h3>
-                    <ol className="space-y-3">
+                    <h3 className="font-semibold text-base mb-2">Steps</h3>
+                    <ol className="space-y-2">
                       {selectedRecipe.steps.map((step, idx) => (
-                        <li key={idx} className="flex gap-3">
-                          <span className="font-semibold text-orange-500">{idx + 1}.</span>
+                        <li key={idx} className="flex gap-2 text-sm">
+                          <span className="font-semibold text-orange-500 flex-shrink-0">{idx + 1}.</span>
                           <span>{step}</span>
                         </li>
                       ))}
@@ -623,17 +639,17 @@ const RecipeManager = () => {
 
                   {selectedRecipe.notes && (
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Notes</h3>
-                      <p className="text-gray-700">{selectedRecipe.notes}</p>
+                      <h3 className="font-semibold text-base mb-1">Notes</h3>
+                      <p className="text-sm text-gray-700">{selectedRecipe.notes}</p>
                     </div>
                   )}
 
                   {selectedRecipe.collections.length > 0 && (
                     <div>
-                      <h3 className="font-semibold text-sm mb-2">Collections</h3>
-                      <div className="flex flex-wrap gap-2">
+                      <h3 className="font-semibold text-xs mb-2 text-gray-600">Collections</h3>
+                      <div className="flex flex-wrap gap-1">
                         {selectedRecipe.collections.map(col => (
-                          <span key={col} className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-sm">
+                          <span key={col} className="px-2 py-1 bg-orange-50 text-orange-600 rounded-full text-xs">
                             {col}
                           </span>
                         ))}
@@ -748,3 +764,4 @@ const RecipeManager = () => {
 };
 
 export default RecipeManager;
+                      
