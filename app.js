@@ -21,31 +21,46 @@ class RecipeManager {
     }
 
     migrateData() {
-        // Fix any existing recipes that might have undefined arrays
-        let needsSave = false;
-        this.recipes = this.recipes.map(recipe => {
-            if (!recipe.collections || !Array.isArray(recipe.collections)) {
-                recipe.collections = [];
-                needsSave = true;
+        // Fix any existing recipes that might have undefined arrays or bad data
+        let validRecipes = [];
+        
+        this.recipes.forEach(recipe => {
+            try {
+                // Ensure recipe has an id
+                if (!recipe.id) {
+                    recipe.id = Date.now().toString() + Math.random();
+                }
+                
+                // Ensure recipe has a name
+                if (!recipe.name || typeof recipe.name !== 'string') {
+                    recipe.name = 'Untitled Recipe';
+                }
+                
+                // Fix all arrays
+                recipe.collections = Array.isArray(recipe.collections) ? recipe.collections : [];
+                recipe.keywords = Array.isArray(recipe.keywords) ? recipe.keywords : [];
+                recipe.ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+                recipe.steps = Array.isArray(recipe.steps) ? recipe.steps : [];
+                
+                // Fix numbers
+                recipe.servings = parseInt(recipe.servings) || 4;
+                recipe.prepTime = parseInt(recipe.prepTime) || 0;
+                recipe.cookTime = parseInt(recipe.cookTime) || 0;
+                
+                // Fix strings
+                recipe.source = recipe.source || '';
+                recipe.image = recipe.image || '';
+                recipe.nutrition = recipe.nutrition || '';
+                recipe.notes = recipe.notes || '';
+                
+                validRecipes.push(recipe);
+            } catch (e) {
+                console.error('Skipping invalid recipe:', e);
             }
-            if (!recipe.keywords || !Array.isArray(recipe.keywords)) {
-                recipe.keywords = [];
-                needsSave = true;
-            }
-            if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
-                recipe.ingredients = [];
-                needsSave = true;
-            }
-            if (!recipe.steps || !Array.isArray(recipe.steps)) {
-                recipe.steps = [];
-                needsSave = true;
-            }
-            return recipe;
         });
         
-        if (needsSave) {
-            this.saveData('recipes', this.recipes);
-        }
+        this.recipes = validRecipes;
+        this.saveData('recipes', this.recipes);
     }
 
     setupEventListeners() {
@@ -148,6 +163,44 @@ class RecipeManager {
 
         if (view === 'shopping-list') {
             this.renderShoppingList();
+        } else if (view === 'import-export') {
+            this.addClearAllButton();
+        } else if (view === 'meal-plan') {
+            this.renderMealPlan();
+        }
+    }
+
+    addClearAllButton() {
+        // Add a clear all data button to the import/export page
+        const importExportView = document.getElementById('import-export-view');
+        if (!document.getElementById('clear-all-data-btn')) {
+            const section = document.createElement('div');
+            section.className = 'import-export-section';
+            section.style.borderTop = '2px solid #ef4444';
+            section.style.paddingTop = '24px';
+            section.innerHTML = `
+                <h2 style="color: #ef4444;">Danger Zone</h2>
+                <p>Permanently delete all recipes and meal plans. This cannot be undone!</p>
+                <button id="clear-all-data-btn" class="btn btn-danger">Clear All Data</button>
+            `;
+            importExportView.appendChild(section);
+            
+            document.getElementById('clear-all-data-btn').addEventListener('click', () => {
+                if (confirm('⚠️ WARNING: This will delete ALL recipes and meal plans permanently. This cannot be undone!\n\nAre you absolutely sure?')) {
+                    if (confirm('Last chance! Click OK to delete everything.')) {
+                        this.recipes = [];
+                        this.mealPlan = {};
+                        this.shoppingList = [];
+                        localStorage.removeItem('recipes');
+                        localStorage.removeItem('mealPlan');
+                        this.renderRecipes();
+                        this.updateCollectionFilter();
+                        this.renderMealPlan();
+                        alert('All data has been cleared.');
+                        this.switchView('recipes');
+                    }
+                }
+            });
         }
     }
 
@@ -171,6 +224,9 @@ class RecipeManager {
     }
 
     openRecipeModal(recipe = null) {
+        // IMPORTANT: Close the detail modal first if it's open
+        this.closeRecipeDetailModal();
+        
         this.editingRecipeId = recipe ? recipe.id : null;
         const modal = document.getElementById('recipe-modal');
         const form = document.getElementById('recipe-form');
@@ -255,6 +311,7 @@ class RecipeManager {
         this.saveData('recipes', this.recipes);
         this.renderRecipes();
         this.updateCollectionFilter();
+        this.renderMealPlan(); // Update meal plan dropdowns
         this.closeRecipeModal();
         
         alert('Recipe saved successfully!');
@@ -266,7 +323,9 @@ class RecipeManager {
             this.saveData('recipes', this.recipes);
             this.renderRecipes();
             this.updateCollectionFilter();
+            this.renderMealPlan(); // Update meal plan dropdowns
             this.closeRecipeDetailModal();
+            alert('Recipe deleted successfully!');
         }
     }
 
@@ -302,22 +361,27 @@ class RecipeManager {
             const cookTime = recipe.cookTime || 0;
             
             return `
-                <div class="recipe-card" onclick="recipeManager.viewRecipe('${recipe.id}')">
-                    ${recipe.image ? 
-                        `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
-                        `<div class="recipe-card-image"></div>`
-                    }
-                    <div class="recipe-card-content">
-                        <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
-                        <div class="recipe-card-meta">
-                            ${recipe.servings || 0} servings • 
-                            ${prepTime + cookTime} min total
+                <div class="recipe-card">
+                    <div onclick="recipeManager.viewRecipe('${recipe.id}')" style="cursor: pointer;">
+                        ${recipe.image ? 
+                            `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
+                            `<div class="recipe-card-image"></div>`
+                        }
+                        <div class="recipe-card-content">
+                            <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
+                            <div class="recipe-card-meta">
+                                ${recipe.servings || 0} servings • 
+                                ${prepTime + cookTime} min total
+                            </div>
+                            <div class="recipe-card-collections">
+                                ${collections.map(c => 
+                                    `<span class="collection-tag">${this.escapeHtml(c)}</span>`
+                                ).join('')}
+                            </div>
                         </div>
-                        <div class="recipe-card-collections">
-                            ${collections.map(c => 
-                                `<span class="collection-tag">${this.escapeHtml(c)}</span>`
-                            ).join('')}
-                        </div>
+                    </div>
+                    <div style="padding: 0 16px 16px;">
+                        <button class="btn btn-danger" style="width: 100%; padding: 8px;" onclick="event.stopPropagation(); recipeManager.deleteRecipe('${recipe.id}')">Delete</button>
                     </div>
                 </div>
             `;
@@ -351,73 +415,81 @@ class RecipeManager {
     }
 
     viewRecipe(id) {
-        const recipe = this.recipes.find(r => r.id === id);
-        if (!recipe) return;
+        try {
+            const recipe = this.recipes.find(r => r.id === id);
+            if (!recipe) {
+                alert('Recipe not found');
+                return;
+            }
 
-        const collections = recipe.collections || [];
-        const ingredients = recipe.ingredients || [];
-        const steps = recipe.steps || [];
+            const collections = recipe.collections || [];
+            const ingredients = recipe.ingredients || [];
+            const steps = recipe.steps || [];
 
-        const content = document.getElementById('recipe-detail-content');
-        content.innerHTML = `
-            <div class="recipe-detail-header">
-                ${recipe.image ? 
-                    `<img src="${recipe.image}" alt="${this.escapeHtml(recipe.name)}" class="recipe-detail-image" onerror="this.style.display='none'">` : 
-                    ''
-                }
-                <h2 class="recipe-detail-title">${this.escapeHtml(recipe.name)}</h2>
-                <div class="recipe-detail-meta">
-                    <span>🍽️ ${recipe.servings || 0} servings</span>
-                    <span>⏱️ Prep: ${recipe.prepTime || 0} min</span>
-                    <span>🔥 Cook: ${recipe.cookTime || 0} min</span>
-                    ${recipe.source ? `<span>📖 ${this.escapeHtml(recipe.source)}</span>` : ''}
+            const content = document.getElementById('recipe-detail-content');
+            content.innerHTML = `
+                <div class="recipe-detail-header">
+                    ${recipe.image ? 
+                        `<img src="${recipe.image}" alt="${this.escapeHtml(recipe.name)}" class="recipe-detail-image" onerror="this.style.display='none'">` : 
+                        ''
+                    }
+                    <h2 class="recipe-detail-title">${this.escapeHtml(recipe.name)}</h2>
+                    <div class="recipe-detail-meta">
+                        <span>🍽️ ${recipe.servings || 0} servings</span>
+                        <span>⏱️ Prep: ${recipe.prepTime || 0} min</span>
+                        <span>🔥 Cook: ${recipe.cookTime || 0} min</span>
+                        ${recipe.source ? `<span>📖 ${this.escapeHtml(recipe.source)}</span>` : ''}
+                    </div>
+                    <div class="recipe-card-collections">
+                        ${collections.map(c => 
+                            `<span class="collection-tag">${this.escapeHtml(c)}</span>`
+                        ).join('')}
+                    </div>
                 </div>
-                <div class="recipe-card-collections">
-                    ${collections.map(c => 
-                        `<span class="collection-tag">${this.escapeHtml(c)}</span>`
-                    ).join('')}
+
+                <div class="recipe-detail-actions">
+                    <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${recipe.id}'))">
+                        Edit Recipe
+                    </button>
+                    <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${recipe.id}')">
+                        Delete Recipe
+                    </button>
                 </div>
-            </div>
 
-            <div class="recipe-detail-actions">
-                <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${recipe.id}'))">
-                    Edit Recipe
-                </button>
-                <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${recipe.id}')">
-                    Delete Recipe
-                </button>
-            </div>
-
-            <div class="recipe-detail-section">
-                <h3>Ingredients</h3>
-                <ul>
-                    ${ingredients.map(i => `<li>${this.escapeHtml(i)}</li>`).join('')}
-                </ul>
-            </div>
-
-            <div class="recipe-detail-section">
-                <h3>Instructions</h3>
-                <ol>
-                    ${steps.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
-                </ol>
-            </div>
-
-            ${recipe.nutrition ? `
                 <div class="recipe-detail-section">
-                    <h3>Nutrition Information</h3>
-                    <p>${this.escapeHtml(recipe.nutrition).replace(/\n/g, '<br>')}</p>
+                    <h3>Ingredients</h3>
+                    <ul>
+                        ${ingredients.map(i => `<li>${this.escapeHtml(i)}</li>`).join('')}
+                    </ul>
                 </div>
-            ` : ''}
 
-            ${recipe.notes ? `
                 <div class="recipe-detail-section">
-                    <h3>Notes</h3>
-                    <p>${this.escapeHtml(recipe.notes).replace(/\n/g, '<br>')}</p>
+                    <h3>Instructions</h3>
+                    <ol>
+                        ${steps.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
+                    </ol>
                 </div>
-            ` : ''}
-        `;
 
-        document.getElementById('recipe-detail-modal').classList.add('active');
+                ${recipe.nutrition ? `
+                    <div class="recipe-detail-section">
+                        <h3>Nutrition Information</h3>
+                        <p>${this.escapeHtml(recipe.nutrition).replace(/\n/g, '<br>')}</p>
+                    </div>
+                ` : ''}
+
+                ${recipe.notes ? `
+                    <div class="recipe-detail-section">
+                        <h3>Notes</h3>
+                        <p>${this.escapeHtml(recipe.notes).replace(/\n/g, '<br>')}</p>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('recipe-detail-modal').classList.add('active');
+        } catch (e) {
+            console.error('Error viewing recipe:', e);
+            alert('Error loading recipe. It may be corrupted.');
+        }
     }
 
     closeRecipeDetailModal() {
@@ -448,6 +520,11 @@ class RecipeManager {
             const date = new Date(today);
             date.setDate(date.getDate() + i);
             days.push(date);
+        }
+
+        if (this.recipes.length === 0) {
+            grid.innerHTML = '<p class="empty-message">No recipes available. Add some recipes first!</p>';
+            return;
         }
 
         grid.innerHTML = days.map(date => {
@@ -485,7 +562,7 @@ class RecipeManager {
             <div class="meal-slot">
                 <div class="meal-slot-label">${label}</div>
                 <select data-meal="${date}|${mealType}">
-                    <option value="">No meal</option>
+                    <option value="">-- Select a recipe --</option>
                     ${this.recipes.map(r => 
                         `<option value="${r.id}" ${r.id === selectedRecipe ? 'selected' : ''}>
                             ${this.escapeHtml(r.name)}
@@ -609,7 +686,7 @@ class RecipeManager {
             if (confirm('This will replace all current data. Continue?')) {
                 this.recipes = data.recipes;
                 this.mealPlan = data.mealPlan || {};
-                this.migrateData(); // Fix imported recipes
+                this.migrateData();
                 this.saveData('recipes', this.recipes);
                 this.saveData('mealPlan', this.mealPlan);
                 this.renderRecipes();
