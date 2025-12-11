@@ -43,7 +43,6 @@ class RecipeManager {
 
         document.getElementById('recipe-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            console.log('Form submitted');
             this.saveRecipe();
         });
 
@@ -136,7 +135,6 @@ class RecipeManager {
     saveData(key, data) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
-            console.log('Data saved successfully:', key);
         } catch (e) {
             console.error('Error saving data:', e);
             alert('Error saving data. Please try again.');
@@ -151,21 +149,20 @@ class RecipeManager {
         document.getElementById('modal-title').textContent = recipe ? 'Edit Recipe' : 'Add Recipe';
         
         if (recipe) {
-            document.getElementById('recipe-name').value = recipe.name;
-            document.getElementById('recipe-servings').value = recipe.servings;
+            document.getElementById('recipe-name').value = recipe.name || '';
+            document.getElementById('recipe-servings').value = recipe.servings || 4;
             document.getElementById('recipe-prep-time').value = recipe.prepTime || '';
             document.getElementById('recipe-cook-time').value = recipe.cookTime || '';
             document.getElementById('recipe-source').value = recipe.source || '';
             document.getElementById('recipe-image').value = recipe.image || '';
-            document.getElementById('recipe-collections').value = recipe.collections.join(', ');
-            document.getElementById('recipe-keywords').value = recipe.keywords.join(', ');
-            document.getElementById('recipe-ingredients').value = recipe.ingredients.join('\n');
-            document.getElementById('recipe-steps').value = recipe.steps.join('\n');
+            document.getElementById('recipe-collections').value = (recipe.collections || []).join(', ');
+            document.getElementById('recipe-keywords').value = (recipe.keywords || []).join(', ');
+            document.getElementById('recipe-ingredients').value = (recipe.ingredients || []).join('\n');
+            document.getElementById('recipe-steps').value = (recipe.steps || []).join('\n');
             document.getElementById('recipe-nutrition').value = recipe.nutrition || '';
             document.getElementById('recipe-notes').value = recipe.notes || '';
         } else {
             form.reset();
-            // Set default values
             document.getElementById('recipe-servings').value = 4;
         }
         
@@ -178,8 +175,6 @@ class RecipeManager {
     }
 
     saveRecipe() {
-        console.log('saveRecipe called');
-        
         const nameValue = document.getElementById('recipe-name').value.trim();
         const ingredientsValue = document.getElementById('recipe-ingredients').value.trim();
         const stepsValue = document.getElementById('recipe-steps').value.trim();
@@ -219,17 +214,13 @@ class RecipeManager {
             notes: document.getElementById('recipe-notes').value.trim()
         };
 
-        console.log('Recipe object created:', recipe);
-
         if (this.editingRecipeId) {
             const index = this.recipes.findIndex(r => r.id === this.editingRecipeId);
             if (index !== -1) {
                 this.recipes[index] = recipe;
-                console.log('Recipe updated at index:', index);
             }
         } else {
             this.recipes.push(recipe);
-            console.log('New recipe added. Total recipes:', this.recipes.length);
         }
 
         this.saveData('recipes', this.recipes);
@@ -255,12 +246,17 @@ class RecipeManager {
         const collectionFilter = document.getElementById('collection-filter').value;
         
         let filtered = this.recipes.filter(recipe => {
+            // Ensure all arrays exist
+            const collections = recipe.collections || [];
+            const ingredients = recipe.ingredients || [];
+            const keywords = recipe.keywords || [];
+            
             const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) ||
-                recipe.ingredients.some(i => i.toLowerCase().includes(searchTerm)) ||
-                recipe.keywords.some(k => k.toLowerCase().includes(searchTerm));
+                ingredients.some(i => i.toLowerCase().includes(searchTerm)) ||
+                keywords.some(k => k.toLowerCase().includes(searchTerm));
             
             const matchesCollection = !collectionFilter || 
-                recipe.collections.includes(collectionFilter);
+                collections.includes(collectionFilter);
             
             return matchesSearch && matchesCollection;
         });
@@ -272,26 +268,32 @@ class RecipeManager {
             return;
         }
 
-        grid.innerHTML = filtered.map(recipe => `
-            <div class="recipe-card" onclick="recipeManager.viewRecipe('${recipe.id}')">
-                ${recipe.image ? 
-                    `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
-                    `<div class="recipe-card-image"></div>`
-                }
-                <div class="recipe-card-content">
-                    <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
-                    <div class="recipe-card-meta">
-                        ${recipe.servings} servings • 
-                        ${recipe.prepTime + recipe.cookTime} min total
-                    </div>
-                    <div class="recipe-card-collections">
-                        ${recipe.collections.map(c => 
-                            `<span class="collection-tag">${this.escapeHtml(c)}</span>`
-                        ).join('')}
+        grid.innerHTML = filtered.map(recipe => {
+            const collections = recipe.collections || [];
+            const prepTime = recipe.prepTime || 0;
+            const cookTime = recipe.cookTime || 0;
+            
+            return `
+                <div class="recipe-card" onclick="recipeManager.viewRecipe('${recipe.id}')">
+                    ${recipe.image ? 
+                        `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
+                        `<div class="recipe-card-image"></div>`
+                    }
+                    <div class="recipe-card-content">
+                        <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
+                        <div class="recipe-card-meta">
+                            ${recipe.servings || 0} servings • 
+                            ${prepTime + cookTime} min total
+                        </div>
+                        <div class="recipe-card-collections">
+                            ${collections.map(c => 
+                                `<span class="collection-tag">${this.escapeHtml(c)}</span>`
+                            ).join('')}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     escapeHtml(text) {
@@ -305,7 +307,8 @@ class RecipeManager {
         const collections = new Set();
         
         this.recipes.forEach(recipe => {
-            recipe.collections.forEach(c => collections.add(c));
+            const recipeCollections = recipe.collections || [];
+            recipeCollections.forEach(c => collections.add(c));
         });
 
         const currentValue = select.value;
@@ -323,6 +326,10 @@ class RecipeManager {
         const recipe = this.recipes.find(r => r.id === id);
         if (!recipe) return;
 
+        const collections = recipe.collections || [];
+        const ingredients = recipe.ingredients || [];
+        const steps = recipe.steps || [];
+
         const content = document.getElementById('recipe-detail-content');
         content.innerHTML = `
             <div class="recipe-detail-header">
@@ -332,13 +339,13 @@ class RecipeManager {
                 }
                 <h2 class="recipe-detail-title">${this.escapeHtml(recipe.name)}</h2>
                 <div class="recipe-detail-meta">
-                    <span>🍽️ ${recipe.servings} servings</span>
-                    <span>⏱️ Prep: ${recipe.prepTime} min</span>
-                    <span>🔥 Cook: ${recipe.cookTime} min</span>
+                    <span>🍽️ ${recipe.servings || 0} servings</span>
+                    <span>⏱️ Prep: ${recipe.prepTime || 0} min</span>
+                    <span>🔥 Cook: ${recipe.cookTime || 0} min</span>
                     ${recipe.source ? `<span>📖 ${this.escapeHtml(recipe.source)}</span>` : ''}
                 </div>
                 <div class="recipe-card-collections">
-                    ${recipe.collections.map(c => 
+                    ${collections.map(c => 
                         `<span class="collection-tag">${this.escapeHtml(c)}</span>`
                     ).join('')}
                 </div>
@@ -356,14 +363,14 @@ class RecipeManager {
             <div class="recipe-detail-section">
                 <h3>Ingredients</h3>
                 <ul>
-                    ${recipe.ingredients.map(i => `<li>${this.escapeHtml(i)}</li>`).join('')}
+                    ${ingredients.map(i => `<li>${this.escapeHtml(i)}</li>`).join('')}
                 </ul>
             </div>
 
             <div class="recipe-detail-section">
                 <h3>Instructions</h3>
                 <ol>
-                    ${recipe.steps.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
+                    ${steps.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
                 </ol>
             </div>
 
@@ -471,7 +478,8 @@ class RecipeManager {
                 const recipe = this.recipes.find(r => r.id === recipeId);
                 if (!recipe) return;
                 
-                recipe.ingredients.forEach(ingredient => {
+                const recipeIngredients = recipe.ingredients || [];
+                recipeIngredients.forEach(ingredient => {
                     if (!ingredients[ingredient]) {
                         ingredients[ingredient] = 0;
                     }
@@ -501,7 +509,7 @@ class RecipeManager {
             return;
         }
 
-        // Group by category (simple categorization)
+        // Group by category
         const categorized = {
             'Produce': [],
             'Proteins': [],
