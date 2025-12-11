@@ -529,3 +529,74 @@ main {
         width: 100%;
     }
 }
+/* Shopping List Improvements */
+.shopping-list-items {
+    list-style: none;
+    margin-left: 0;
+}
+
+.shopping-list-item {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.shopping-list-item:hover {
+    background-color: #f9fafb;
+}
+
+.shopping-list-item.checked {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.shopping-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.shopping-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.shopping-checkbox span {
+    font-size: 14px;
+}
+
+.shopping-remove-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.shopping-remove-btn:hover {
+    background: #dc2626;
+}
+
+@media print {
+    .shopping-remove-btn {
+        display: none;
+    }
+    
+    .shopping-list-item.checked {
+        display: none;
+    }
+}
