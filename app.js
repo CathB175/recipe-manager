@@ -298,5 +298,246 @@ class RecipeManager {
                     ${recipe.source ? `<span>📖 ${recipe.source}</span>` : ''}
                 </div>
                 <div class="recipe-card-collections">
-                    ${recipe.collections.map(c => 
-                        `
+                    ${recipe.collections.map(c => 19:04<span class="collection-tag">${c}</span>`
+).join('')}
+</div>
+</div>
+    <div class="recipe-detail-actions">
+            <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${id}'))">
+                Edit Recipe
+            </button>
+            <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${id}')">
+                Delete Recipe
+            </button>
+        </div>
+
+        <div class="recipe-detail-section">
+            <h3>Ingredients</h3>
+            <ul>
+                ${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}
+            </ul>
+        </div>
+
+        <div class="recipe-detail-section">
+            <h3>Instructions</h3>
+            <ol>
+                ${recipe.steps.map(s => `<li>${s}</li>`).join('')}
+            </ol>
+        </div>
+
+        ${recipe.nutrition ? `
+            <div class="recipe-detail-section">
+                <h3>Nutrition Information</h3>
+                <p>${recipe.nutrition.replace(/\n/g, '<br>')}</p>
+            </div>
+        ` : ''}
+
+        ${recipe.notes ? `
+            <div class="recipe-detail-section">
+                <h3>Notes</h3>
+                <p>${recipe.notes.replace(/\n/g, '<br>')}</p>
+            </div>
+        ` : ''}
+    `;
+
+    document.getElementById('recipe-detail-modal').classList.add('active');
+}
+
+closeRecipeDetailModal() {
+    document.getElementById('recipe-detail-modal').classList.remove('active');
+}
+
+cleanOldMealPlan() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    Object.keys(this.mealPlan).forEach(dateStr => {
+        const planDate = new Date(dateStr);
+        if (planDate < today) {
+            delete this.mealPlan[dateStr];
+        }
+    });
+    
+    this.saveData('mealPlan', this.mealPlan);
+}
+
+renderMealPlan() {
+    const grid = document.getElementById('meal-plan-grid');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const days = [];
+    for (let i = 0; i < this.mealPlanDays; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        days.push(date);
+    }
+
+    grid.innerHTML = days.map(date => {
+        const dateStr = date.toISOString().split('T')[0];
+        const isPast = date < today;
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        
+        return `
+            <div class="meal-day ${isPast ? 'past' : ''}" data-date="${dateStr}">
+                <div class="meal-day-header">${dayName}</div>
+                <div class="meal-slots">
+                    ${this.renderMealSlot(dateStr, 'breakfast', 'Breakfast')}
+                    ${this.renderMealSlot(dateStr, 'lunch', 'Lunch')}
+                    ${this.renderMealSlot(dateStr, 'dinner', 'Dinner')}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Add event listeners for meal selections
+    grid.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', (e) => {
+            const [date, mealType] = e.target.dataset.meal.split('|');
+            if (!this.mealPlan[date]) this.mealPlan[date] = {};
+            this.mealPlan[date][mealType] = e.target.value;
+            this.saveData('mealPlan', this.mealPlan);
+        });
+    });
+}
+
+renderMealSlot(date, mealType, label) {
+    const selectedRecipe = this.mealPlan[date]?.[mealType] || '';
+    
+    return `
+        <div class="meal-slot">
+            <div class="meal-slot-label">${label}</div>
+            <select data-meal="${date}|${mealType}">
+                <option value="">No meal</option>
+                ${this.recipes.map(r => 
+                    `<option value="${r.id}" ${r.id === selectedRecipe ? 'selected' : ''}>
+                        ${r.name}
+                    </option>`
+                ).join('')}
+            </select>
+        </div>
+    `;
+}
+
+generateShoppingList() {
+    const ingredients = {};
+    
+    Object.entries(this.mealPlan).forEach(([date, meals]) => {
+        Object.values(meals).forEach(recipeId => {
+            if (!recipeId) return;
+            
+            const recipe = this.recipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            recipe.ingredients.forEach(ingredient => {
+                if (!ingredients[ingredient]) {
+                    ingredients[ingredient] = 0;
+                }
+                ingredients[ingredient]++;
+            });
+        });
+    });
+
+    this.shoppingList = Object.entries(ingredients).map(([ingredient, count]) => ({
+        ingredient,
+        count
+    }));
+
+    this.switchView('shopping-list');
+}
+
+renderShoppingList() {
+    const content = document.getElementById('shopping-list-content');
+    
+    if (this.shoppingList.length === 0) {
+        content.innerHTML = '<p class="empty-message">No shopping list generated yet. Go to Meal Plan and click "Generate Shopping List".</p>';
+        return;
+    }
+
+    // Group by category (simple categorization)
+    const categorized = {
+        'Produce': [],
+        'Proteins': [],
+        'Dairy': [],
+        'Pantry': [],
+        'Other': []
+    };
+
+    this.shoppingList.forEach(item => {
+        const lower = item.ingredient.toLowerCase();
+        if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice/)) {
+            categorized['Produce'].push(item);
+        } else if (lower.match(/chicken|beef|pork|fish|meat|egg/)) {
+            categorized['Proteins'].push(item);
+        } else if (lower.match(/milk|cheese|butter|cream|yogurt/)) {
+            categorized['Dairy'].push(item);
+        } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread/)) {
+            categorized['Pantry'].push(item);
+        } else {
+            categorized['Other'].push(item);
+        }
+    });
+
+    content.innerHTML = Object.entries(categorized)
+        .filter(([_, items]) => items.length > 0)
+        .map(([category, items]) => `
+            <div class="shopping-category">
+                <h3>${category}</h3>
+                <ul>
+                    ${items.map(item => 
+                        `<li>${item.ingredient} ${item.count > 1 ? `(×${item.count})` : ''}</li>`
+                    ).join('')}
+                </ul>
+            </div>
+        `).join('');
+}
+
+exportData() {
+    const data = {
+        recipes: this.recipes,
+        mealPlan: this.mealPlan,
+        exportDate: new Date().toISOString()
+    };
+    
+    document.getElementById('export-textarea').value = JSON.stringify(data, null, 2);
+}
+
+copyExportToClipboard() {
+    const textarea = document.getElementById('export-textarea');
+    if (!textarea.value) {
+        alert('Please generate export first');
+        return;
+    }
+    
+    textarea.select();
+    document.execCommand('copy');
+    alert('Copied to clipboard!');
+}
+
+importData() {
+    const textarea = document.getElementById('import-textarea');
+    try {
+        const data = JSON.parse(textarea.value);
+        
+        if (!data.recipes || !Array.isArray(data.recipes)) {
+            throw new Error('Invalid data format');
+        }
+        
+        if (confirm('This will replace all current data. Continue?')) {
+            this.recipes = data.recipes;
+            this.mealPlan = data.mealPlan || {};
+            this.saveData('recipes', this.recipes);
+            this.saveData('mealPlan', this.mealPlan);
+            this.renderRecipes();
+            this.updateCollectionFilter();
+            this.renderMealPlan();
+            textarea.value = '';
+            alert('Data imported successfully!');
+        }
+    } catch (e) {
+        alert('Error importing data: ' + e.message);
+    }
+}
+  }
+// Initialize the app
+const recipeManager = new RecipeManager();                      `
