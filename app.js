@@ -8,6 +8,7 @@ class RecipeManager {
         this.editingRecipeId = null;
         this.mealPlanDays = 7;
         
+        this.migrateData();
         this.init();
     }
 
@@ -17,6 +18,34 @@ class RecipeManager {
         this.updateCollectionFilter();
         this.cleanOldMealPlan();
         this.renderMealPlan();
+    }
+
+    migrateData() {
+        // Fix any existing recipes that might have undefined arrays
+        let needsSave = false;
+        this.recipes = this.recipes.map(recipe => {
+            if (!recipe.collections || !Array.isArray(recipe.collections)) {
+                recipe.collections = [];
+                needsSave = true;
+            }
+            if (!recipe.keywords || !Array.isArray(recipe.keywords)) {
+                recipe.keywords = [];
+                needsSave = true;
+            }
+            if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
+                recipe.ingredients = [];
+                needsSave = true;
+            }
+            if (!recipe.steps || !Array.isArray(recipe.steps)) {
+                recipe.steps = [];
+                needsSave = true;
+            }
+            return recipe;
+        });
+        
+        if (needsSave) {
+            this.saveData('recipes', this.recipes);
+        }
     }
 
     setupEventListeners() {
@@ -246,7 +275,6 @@ class RecipeManager {
         const collectionFilter = document.getElementById('collection-filter').value;
         
         let filtered = this.recipes.filter(recipe => {
-            // Ensure all arrays exist
             const collections = recipe.collections || [];
             const ingredients = recipe.ingredients || [];
             const keywords = recipe.keywords || [];
@@ -581,6 +609,7 @@ class RecipeManager {
             if (confirm('This will replace all current data. Continue?')) {
                 this.recipes = data.recipes;
                 this.mealPlan = data.mealPlan || {};
+                this.migrateData(); // Fix imported recipes
                 this.saveData('recipes', this.recipes);
                 this.saveData('mealPlan', this.mealPlan);
                 this.renderRecipes();
