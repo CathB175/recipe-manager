@@ -361,27 +361,22 @@ class RecipeManager {
             const cookTime = recipe.cookTime || 0;
             
             return `
-                <div class="recipe-card">
-                    <div onclick="recipeManager.viewRecipe('${recipe.id}')" style="cursor: pointer;">
-                        ${recipe.image ? 
-                            `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
-                            `<div class="recipe-card-image"></div>`
-                        }
-                        <div class="recipe-card-content">
-                            <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
-                            <div class="recipe-card-meta">
-                                ${recipe.servings || 0} servings • 
-                                ${prepTime + cookTime} min total
-                            </div>
-                            <div class="recipe-card-collections">
-                                ${collections.map(c => 
-                                    `<span class="collection-tag">${this.escapeHtml(c)}</span>`
-                                ).join('')}
-                            </div>
+                <div class="recipe-card" onclick="recipeManager.viewRecipe('${recipe.id}')" style="cursor: pointer;">
+                    ${recipe.image ? 
+                        `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
+                        `<div class="recipe-card-image"></div>`
+                    }
+                    <div class="recipe-card-content">
+                        <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
+                        <div class="recipe-card-meta">
+                            ${recipe.servings || 0} servings • 
+                            ${prepTime + cookTime} min total
                         </div>
-                    </div>
-                    <div style="padding: 0 16px 16px;">
-                        <button class="btn btn-danger" style="width: 100%; padding: 8px;" onclick="event.stopPropagation(); recipeManager.deleteRecipe('${recipe.id}')">Delete</button>
+                        <div class="recipe-card-collections">
+                            ${collections.map(c => 
+                                `<span class="collection-tag">${this.escapeHtml(c)}</span>`
+                            ).join('')}
+                        </div>
                     </div>
                 </div>
             `;
@@ -411,6 +406,75 @@ class RecipeManager {
         
         if (currentValue && collections.has(currentValue)) {
             select.value = currentValue;
+        }
+    }
+
+    addToMealPlan(recipeId) {
+        // Create a mini meal planner interface
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            days.push(date);
+        }
+        
+        const dayOptions = days.map(date => {
+            const dateStr = date.toISOString().split('T')[0];
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return `<option value="${dateStr}">${dayName}</option>`;
+        }).join('');
+        
+        const html = `
+            <div style="padding: 20px;">
+                <h3 style="margin-bottom: 16px;">Add to Meal Plan</h3>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Day:</label>
+                    <select id="add-meal-day" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        ${dayOptions}
+                    </select>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Meal:</label>
+                    <select id="add-meal-type" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="dinner">Dinner</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="recipeManager.confirmAddToMealPlan('${recipeId}')" class="btn btn-primary" style="flex: 1;">Add to Plan</button>
+                    <button onclick="recipeManager.cancelAddToMealPlan()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+            </div>
+        `;
+        
+        // Create temporary modal
+        const tempModal = document.createElement('div');
+        tempModal.id = 'temp-add-meal-modal';
+        tempModal.className = 'modal active';
+        tempModal.innerHTML = `<div class="modal-content" style="max-width: 400px;">${html}</div>`;
+        document.body.appendChild(tempModal);
+    }
+
+    confirmAddToMealPlan(recipeId) {
+        const day = document.getElementById('add-meal-day').value;
+        const mealType = document.getElementById('add-meal-type').value;
+        
+        if (!this.mealPlan[day]) this.mealPlan[day] = {};
+        this.mealPlan[day][mealType] = recipeId;
+        this.saveData('mealPlan', this.mealPlan);
+        
+        this.cancelAddToMealPlan();
+        alert('Recipe added to meal plan!');
+    }
+
+    cancelAddToMealPlan() {
+        const tempModal = document.getElementById('temp-add-meal-modal');
+        if (tempModal) {
+            tempModal.remove();
         }
     }
 
@@ -448,11 +512,14 @@ class RecipeManager {
                 </div>
 
                 <div class="recipe-detail-actions">
+                    <button class="btn btn-primary" onclick="recipeManager.addToMealPlan('${recipe.id}')">
+                        📅 Add to Meal Plan
+                    </button>
                     <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${recipe.id}'))">
-                        Edit Recipe
+                        ✏️ Edit Recipe
                     </button>
                     <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${recipe.id}')">
-                        Delete Recipe
+                        🗑️ Delete
                     </button>
                 </div>
 
@@ -586,16 +653,17 @@ class RecipeManager {
                 const recipeIngredients = recipe.ingredients || [];
                 recipeIngredients.forEach(ingredient => {
                     if (!ingredients[ingredient]) {
-                        ingredients[ingredient] = 0;
+                        ingredients[ingredient] = {count: 0, checked: false};
                     }
-                    ingredients[ingredient]++;
+                    ingredients[ingredient].count++;
                 });
             });
         });
 
-        this.shoppingList = Object.entries(ingredients).map(([ingredient, count]) => ({
+        this.shoppingList = Object.entries(ingredients).map(([ingredient, data]) => ({
             ingredient,
-            count
+            count: data.count,
+            checked: false
         }));
 
         if (this.shoppingList.length === 0) {
@@ -604,6 +672,16 @@ class RecipeManager {
         }
 
         this.switchView('shopping-list');
+    }
+
+    toggleShoppingItem(index) {
+        this.shoppingList[index].checked = !this.shoppingList[index].checked;
+        this.renderShoppingList();
+    }
+
+    removeShoppingItem(index) {
+        this.shoppingList.splice(index, 1);
+        this.renderShoppingList();
     }
 
     renderShoppingList() {
@@ -623,15 +701,16 @@ class RecipeManager {
             'Other': []
         };
 
-        this.shoppingList.forEach(item => {
+        this.shoppingList.forEach((item, index) => {
+            item.index = index;
             const lower = item.ingredient.toLowerCase();
-            if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice|pepper|carrot|celery|potato|apple|banana|orange|berry/)) {
+            if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice|pepper|carrot|celery|potato|apple|banana|orange|berry|spinach|kale|broccoli|cauliflower|cucumber|zucchini/)) {
                 categorized['Produce'].push(item);
-            } else if (lower.match(/chicken|beef|pork|fish|meat|egg|turkey|salmon|shrimp/)) {
+            } else if (lower.match(/chicken|beef|pork|fish|meat|egg|turkey|salmon|shrimp|bacon|sausage|ham/)) {
                 categorized['Proteins'].push(item);
             } else if (lower.match(/milk|cheese|butter|cream|yogurt/)) {
                 categorized['Dairy'].push(item);
-            } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread|sauce|stock|broth/)) {
+            } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread|sauce|stock|broth|can|jar/)) {
                 categorized['Pantry'].push(item);
             } else {
                 categorized['Other'].push(item);
@@ -643,10 +722,17 @@ class RecipeManager {
             .map(([category, items]) => `
                 <div class="shopping-category">
                     <h3>${category}</h3>
-                    <ul>
-                        ${items.map(item => 
-                            `<li>${this.escapeHtml(item.ingredient)} ${item.count > 1 ? `(×${item.count})` : ''}</li>`
-                        ).join('')}
+                    <ul class="shopping-list-items">
+                        ${items.map(item => `
+                            <li class="shopping-list-item ${item.checked ? 'checked' : ''}" data-index="${item.index}">
+                                <label class="shopping-checkbox">
+                                    <input type="checkbox" ${item.checked ? 'checked' : ''} 
+                                           onchange="recipeManager.toggleShoppingItem(${item.index})">
+                                    <span>${this.escapeHtml(item.ingredient)} ${item.count > 1 ? `(×${item.count})` : ''}</span>
+                                </label>
+                                <button class="shopping-remove-btn" onclick="recipeManager.removeShoppingItem(${item.index})" title="Remove item">×</button>
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `).join('');
