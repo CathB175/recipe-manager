@@ -43,6 +43,7 @@ class RecipeManager {
 
         document.getElementById('recipe-form').addEventListener('submit', (e) => {
             e.preventDefault();
+            console.log('Form submitted');
             this.saveRecipe();
         });
 
@@ -135,8 +136,10 @@ class RecipeManager {
     saveData(key, data) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
+            console.log('Data saved successfully:', key);
         } catch (e) {
             console.error('Error saving data:', e);
+            alert('Error saving data. Please try again.');
         }
     }
 
@@ -162,6 +165,8 @@ class RecipeManager {
             document.getElementById('recipe-notes').value = recipe.notes || '';
         } else {
             form.reset();
+            // Set default values
+            document.getElementById('recipe-servings').value = 4;
         }
         
         modal.classList.add('active');
@@ -173,37 +178,66 @@ class RecipeManager {
     }
 
     saveRecipe() {
+        console.log('saveRecipe called');
+        
+        const nameValue = document.getElementById('recipe-name').value.trim();
+        const ingredientsValue = document.getElementById('recipe-ingredients').value.trim();
+        const stepsValue = document.getElementById('recipe-steps').value.trim();
+        
+        if (!nameValue) {
+            alert('Please enter a recipe name');
+            return;
+        }
+        
+        if (!ingredientsValue) {
+            alert('Please enter at least one ingredient');
+            return;
+        }
+        
+        if (!stepsValue) {
+            alert('Please enter at least one step');
+            return;
+        }
+        
         const recipe = {
             id: this.editingRecipeId || Date.now().toString(),
-            name: document.getElementById('recipe-name').value,
-            servings: parseInt(document.getElementById('recipe-servings').value),
+            name: nameValue,
+            servings: parseInt(document.getElementById('recipe-servings').value) || 4,
             prepTime: parseInt(document.getElementById('recipe-prep-time').value) || 0,
             cookTime: parseInt(document.getElementById('recipe-cook-time').value) || 0,
-            source: document.getElementById('recipe-source').value,
-            image: document.getElementById('recipe-image').value,
+            source: document.getElementById('recipe-source').value.trim(),
+            image: document.getElementById('recipe-image').value.trim(),
             collections: document.getElementById('recipe-collections').value
                 .split(',').map(c => c.trim()).filter(c => c),
             keywords: document.getElementById('recipe-keywords').value
                 .split(',').map(k => k.trim()).filter(k => k),
-            ingredients: document.getElementById('recipe-ingredients').value
+            ingredients: ingredientsValue
                 .split('\n').map(i => i.trim()).filter(i => i),
-            steps: document.getElementById('recipe-steps').value
+            steps: stepsValue
                 .split('\n').map(s => s.trim()).filter(s => s),
-            nutrition: document.getElementById('recipe-nutrition').value,
-            notes: document.getElementById('recipe-notes').value
+            nutrition: document.getElementById('recipe-nutrition').value.trim(),
+            notes: document.getElementById('recipe-notes').value.trim()
         };
+
+        console.log('Recipe object created:', recipe);
 
         if (this.editingRecipeId) {
             const index = this.recipes.findIndex(r => r.id === this.editingRecipeId);
-            this.recipes[index] = recipe;
+            if (index !== -1) {
+                this.recipes[index] = recipe;
+                console.log('Recipe updated at index:', index);
+            }
         } else {
             this.recipes.push(recipe);
+            console.log('New recipe added. Total recipes:', this.recipes.length);
         }
 
         this.saveData('recipes', this.recipes);
         this.renderRecipes();
         this.updateCollectionFilter();
         this.closeRecipeModal();
+        
+        alert('Recipe saved successfully!');
     }
 
     deleteRecipe(id) {
@@ -241,23 +275,29 @@ class RecipeManager {
         grid.innerHTML = filtered.map(recipe => `
             <div class="recipe-card" onclick="recipeManager.viewRecipe('${recipe.id}')">
                 ${recipe.image ? 
-                    `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image">` :
+                    `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-card-image" onerror="this.style.display='none'">` :
                     `<div class="recipe-card-image"></div>`
                 }
                 <div class="recipe-card-content">
-                    <div class="recipe-card-title">${recipe.name}</div>
+                    <div class="recipe-card-title">${this.escapeHtml(recipe.name)}</div>
                     <div class="recipe-card-meta">
                         ${recipe.servings} servings • 
                         ${recipe.prepTime + recipe.cookTime} min total
                     </div>
                     <div class="recipe-card-collections">
                         ${recipe.collections.map(c => 
-                            `<span class="collection-tag">${c}</span>`
+                            `<span class="collection-tag">${this.escapeHtml(c)}</span>`
                         ).join('')}
                     </div>
                 </div>
             </div>
         `).join('');
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     updateCollectionFilter() {
@@ -271,7 +311,7 @@ class RecipeManager {
         const currentValue = select.value;
         select.innerHTML = '<option value="">All Collections</option>' +
             Array.from(collections).sort().map(c => 
-                `<option value="${c}">${c}</option>`
+                `<option value="${this.escapeHtml(c)}">${this.escapeHtml(c)}</option>`
             ).join('');
         
         if (currentValue && collections.has(currentValue)) {
@@ -287,28 +327,28 @@ class RecipeManager {
         content.innerHTML = `
             <div class="recipe-detail-header">
                 ${recipe.image ? 
-                    `<img src="${recipe.image}" alt="${recipe.name}" class="recipe-detail-image">` : 
+                    `<img src="${recipe.image}" alt="${this.escapeHtml(recipe.name)}" class="recipe-detail-image" onerror="this.style.display='none'">` : 
                     ''
                 }
-                <h2 class="recipe-detail-title">${recipe.name}</h2>
+                <h2 class="recipe-detail-title">${this.escapeHtml(recipe.name)}</h2>
                 <div class="recipe-detail-meta">
                     <span>🍽️ ${recipe.servings} servings</span>
                     <span>⏱️ Prep: ${recipe.prepTime} min</span>
                     <span>🔥 Cook: ${recipe.cookTime} min</span>
-                    ${recipe.source ? `<span>📖 ${recipe.source}</span>` : ''}
+                    ${recipe.source ? `<span>📖 ${this.escapeHtml(recipe.source)}</span>` : ''}
                 </div>
                 <div class="recipe-card-collections">
                     ${recipe.collections.map(c => 
-                        `<span class="collection-tag">${c}</span>`
+                        `<span class="collection-tag">${this.escapeHtml(c)}</span>`
                     ).join('')}
                 </div>
             </div>
 
             <div class="recipe-detail-actions">
-                <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${id}'))">
+                <button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === '${recipe.id}'))">
                     Edit Recipe
                 </button>
-                <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${id}')">
+                <button class="btn btn-danger" onclick="recipeManager.deleteRecipe('${recipe.id}')">
                     Delete Recipe
                 </button>
             </div>
@@ -316,28 +356,28 @@ class RecipeManager {
             <div class="recipe-detail-section">
                 <h3>Ingredients</h3>
                 <ul>
-                    ${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}
+                    ${recipe.ingredients.map(i => `<li>${this.escapeHtml(i)}</li>`).join('')}
                 </ul>
             </div>
 
             <div class="recipe-detail-section">
                 <h3>Instructions</h3>
                 <ol>
-                    ${recipe.steps.map(s => `<li>${s}</li>`).join('')}
+                    ${recipe.steps.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
                 </ol>
             </div>
 
             ${recipe.nutrition ? `
                 <div class="recipe-detail-section">
                     <h3>Nutrition Information</h3>
-                    <p>${recipe.nutrition.replace(/\n/g, '<br>')}</p>
+                    <p>${this.escapeHtml(recipe.nutrition).replace(/\n/g, '<br>')}</p>
                 </div>
             ` : ''}
 
             ${recipe.notes ? `
                 <div class="recipe-detail-section">
                     <h3>Notes</h3>
-                    <p>${recipe.notes.replace(/\n/g, '<br>')}</p>
+                    <p>${this.escapeHtml(recipe.notes).replace(/\n/g, '<br>')}</p>
                 </div>
             ` : ''}
         `;
@@ -413,7 +453,7 @@ class RecipeManager {
                     <option value="">No meal</option>
                     ${this.recipes.map(r => 
                         `<option value="${r.id}" ${r.id === selectedRecipe ? 'selected' : ''}>
-                            ${r.name}
+                            ${this.escapeHtml(r.name)}
                         </option>`
                     ).join('')}
                 </select>
@@ -445,6 +485,11 @@ class RecipeManager {
             count
         }));
 
+        if (this.shoppingList.length === 0) {
+            alert('No meals planned yet. Add recipes to your meal plan first.');
+            return;
+        }
+
         this.switchView('shopping-list');
     }
 
@@ -467,13 +512,13 @@ class RecipeManager {
 
         this.shoppingList.forEach(item => {
             const lower = item.ingredient.toLowerCase();
-            if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice/)) {
+            if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice|pepper|carrot|celery|potato|apple|banana|orange|berry/)) {
                 categorized['Produce'].push(item);
-            } else if (lower.match(/chicken|beef|pork|fish|meat|egg/)) {
+            } else if (lower.match(/chicken|beef|pork|fish|meat|egg|turkey|salmon|shrimp/)) {
                 categorized['Proteins'].push(item);
             } else if (lower.match(/milk|cheese|butter|cream|yogurt/)) {
                 categorized['Dairy'].push(item);
-            } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread/)) {
+            } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread|sauce|stock|broth/)) {
                 categorized['Pantry'].push(item);
             } else {
                 categorized['Other'].push(item);
@@ -487,7 +532,7 @@ class RecipeManager {
                     <h3>${category}</h3>
                     <ul>
                         ${items.map(item => 
-                            `<li>${item.ingredient} ${item.count > 1 ? `(×${item.count})` : ''}</li>`
+                            `<li>${this.escapeHtml(item.ingredient)} ${item.count > 1 ? `(×${item.count})` : ''}</li>`
                         ).join('')}
                     </ul>
                 </div>
