@@ -3,10 +3,12 @@ class RecipeManager {
     constructor() {
         this.recipes = this.loadData('recipes') || [];
         this.mealPlan = this.loadData('mealPlan') || {};
+        this.dailyExtras = this.loadData('dailyExtras') || {};
         this.shoppingList = [];
         this.currentView = 'recipes';
         this.editingRecipeId = null;
         this.mealPlanDays = 7;
+        this.currentNutritionDate = new Date().toISOString().split('T')[0];
         
         this.migrateData();
         this.init();
@@ -18,6 +20,7 @@ class RecipeManager {
         this.updateCollectionFilter();
         this.cleanOldMealPlan();
         this.renderMealPlan();
+        this.setupNutritionDatePicker();
     }
 
     migrateData() {
@@ -50,8 +53,29 @@ class RecipeManager {
                 // Fix strings
                 recipe.source = recipe.source || '';
                 recipe.image = recipe.image || '';
-                recipe.nutrition = recipe.nutrition || '';
                 recipe.notes = recipe.notes || '';
+                
+                // Fix nutrition - now as object
+                if (typeof recipe.nutrition === 'string') {
+                    // Old format, convert to new
+                    recipe.nutrition = {
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                        fiber: 0,
+                        sugar: 0
+                    };
+                } else if (!recipe.nutrition) {
+                    recipe.nutrition = {
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                        fiber: 0,
+                        sugar: 0
+                    };
+                }
                 
                 validRecipes.push(recipe);
             } catch (e) {
@@ -149,6 +173,15 @@ class RecipeManager {
         });
     }
 
+    setupNutritionDatePicker() {
+        const picker = document.getElementById('nutrition-date-picker');
+        picker.value = this.currentNutritionDate;
+        picker.addEventListener('change', (e) => {
+            this.currentNutritionDate = e.target.value;
+            this.renderNutritionView();
+        });
+    }
+
     switchView(view) {
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -167,11 +200,12 @@ class RecipeManager {
             this.addClearAllButton();
         } else if (view === 'meal-plan') {
             this.renderMealPlan();
+        } else if (view === 'nutrition') {
+            this.renderNutritionView();
         }
     }
 
     addClearAllButton() {
-        // Add a clear all data button to the import/export page
         const importExportView = document.getElementById('import-export-view');
         if (!document.getElementById('clear-all-data-btn')) {
             const section = document.createElement('div');
@@ -190,9 +224,11 @@ class RecipeManager {
                     if (confirm('Last chance! Click OK to delete everything.')) {
                         this.recipes = [];
                         this.mealPlan = {};
+                        this.dailyExtras = {};
                         this.shoppingList = [];
                         localStorage.removeItem('recipes');
                         localStorage.removeItem('mealPlan');
+                        localStorage.removeItem('dailyExtras');
                         this.renderRecipes();
                         this.updateCollectionFilter();
                         this.renderMealPlan();
@@ -224,7 +260,6 @@ class RecipeManager {
     }
 
     openRecipeModal(recipe = null) {
-        // IMPORTANT: Close the detail modal first if it's open
         this.closeRecipeDetailModal();
         
         this.editingRecipeId = recipe ? recipe.id : null;
@@ -244,8 +279,16 @@ class RecipeManager {
             document.getElementById('recipe-keywords').value = (recipe.keywords || []).join(', ');
             document.getElementById('recipe-ingredients').value = (recipe.ingredients || []).join('\n');
             document.getElementById('recipe-steps').value = (recipe.steps || []).join('\n');
-            document.getElementById('recipe-nutrition').value = recipe.nutrition || '';
             document.getElementById('recipe-notes').value = recipe.notes || '';
+            
+            // Nutrition fields
+            const nutrition = recipe.nutrition || {};
+            document.getElementById('recipe-calories').value = nutrition.calories || '';
+            document.getElementById('recipe-protein').value = nutrition.protein || '';
+            document.getElementById('recipe-carbs').value = nutrition.carbs || '';
+            document.getElementById('recipe-fat').value = nutrition.fat || '';
+            document.getElementById('recipe-fiber').value = nutrition.fiber || '';
+            document.getElementById('recipe-sugar').value = nutrition.sugar || '';
         } else {
             form.reset();
             document.getElementById('recipe-servings').value = 4;
@@ -295,8 +338,15 @@ class RecipeManager {
                 .split('\n').map(i => i.trim()).filter(i => i),
             steps: stepsValue
                 .split('\n').map(s => s.trim()).filter(s => s),
-            nutrition: document.getElementById('recipe-nutrition').value.trim(),
-            notes: document.getElementById('recipe-notes').value.trim()
+            notes: document.getElementById('recipe-notes').value.trim(),
+            nutrition: {
+                calories: parseFloat(document.getElementById('recipe-calories').value) || 0,
+                protein: parseFloat(document.getElementById('recipe-protein').value) || 0,
+                carbs: parseFloat(document.getElementById('recipe-carbs').value) || 0,
+                fat: parseFloat(document.getElementById('recipe-fat').value) || 0,
+                fiber: parseFloat(document.getElementById('recipe-fiber').value) || 0,
+                sugar: parseFloat(document.getElementById('recipe-sugar').value) || 0
+            }
         };
 
         if (this.editingRecipeId) {
@@ -311,7 +361,7 @@ class RecipeManager {
         this.saveData('recipes', this.recipes);
         this.renderRecipes();
         this.updateCollectionFilter();
-        this.renderMealPlan(); // Update meal plan dropdowns
+        this.renderMealPlan();
         this.closeRecipeModal();
         
         alert('Recipe saved successfully!');
@@ -323,7 +373,7 @@ class RecipeManager {
             this.saveData('recipes', this.recipes);
             this.renderRecipes();
             this.updateCollectionFilter();
-            this.renderMealPlan(); // Update meal plan dropdowns
+            this.renderMealPlan();
             this.closeRecipeDetailModal();
             alert('Recipe deleted successfully!');
         }
@@ -410,7 +460,6 @@ class RecipeManager {
     }
 
     addToMealPlan(recipeId) {
-        // Create a mini meal planner interface
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -451,7 +500,6 @@ class RecipeManager {
             </div>
         `;
         
-        // Create temporary modal
         const tempModal = document.createElement('div');
         tempModal.id = 'temp-add-meal-modal';
         tempModal.className = 'modal active';
@@ -489,6 +537,7 @@ class RecipeManager {
             const collections = recipe.collections || [];
             const ingredients = recipe.ingredients || [];
             const steps = recipe.steps || [];
+            const nutrition = recipe.nutrition || {};
 
             const content = document.getElementById('recipe-detail-content');
             content.innerHTML = `
@@ -537,10 +586,17 @@ class RecipeManager {
                     </ol>
                 </div>
 
-                ${recipe.nutrition ? `
+                ${nutrition.calories || nutrition.protein || nutrition.carbs || nutrition.fat ? `
                     <div class="recipe-detail-section">
-                        <h3>Nutrition Information</h3>
-                        <p>${this.escapeHtml(recipe.nutrition).replace(/\n/g, '<br>')}</p>
+                        <h3>Nutrition Information (per serving)</h3>
+                        <div class="nutrition-meal-stats">
+                            ${nutrition.calories ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.calories}</div><div class="nutrition-stat-label">Calories</div></div>` : ''}
+                            ${nutrition.protein ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.protein}g</div><div class="nutrition-stat-label">Protein</div></div>` : ''}
+                            ${nutrition.carbs ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.carbs}g</div><div class="nutrition-stat-label">Carbs</div></div>` : ''}
+                            ${nutrition.fat ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fat}g</div><div class="nutrition-stat-label">Fat</div></div>` : ''}
+                            ${nutrition.fiber ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fiber}g</div><div class="nutrition-stat-label">Fiber</div></div>` : ''}
+                            ${nutrition.sugar ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.sugar}g</div><div class="nutrition-stat-label">Sugar</div></div>` : ''}
+                        </div>
                     </div>
                 ` : ''}
 
@@ -574,7 +630,16 @@ class RecipeManager {
             }
         });
         
+        // Clean old extras too
+        Object.keys(this.dailyExtras).forEach(dateStr => {
+            const planDate = new Date(dateStr);
+            if (planDate < today) {
+                delete this.dailyExtras[dateStr];
+            }
+        });
+        
         this.saveData('mealPlan', this.mealPlan);
+        this.saveData('dailyExtras', this.dailyExtras);
     }
 
     renderMealPlan() {
@@ -611,7 +676,6 @@ class RecipeManager {
             `;
         }).join('');
 
-        // Add event listeners for meal selections
         grid.querySelectorAll('select').forEach(select => {
             select.addEventListener('change', (e) => {
                 const [date, mealType] = e.target.dataset.meal.split('|');
@@ -640,152 +704,392 @@ class RecipeManager {
         `;
     }
 
-    generateShoppingList() {
-        const ingredients = {};
+    renderNutritionView() {
+        const content = document.getElementById('nutrition-content');
+        const dateStr = this.currentNutritionDate;
+        const meals = this.mealPlan[dateStr] || {};
+        const extras = this.dailyExtras[dateStr] || [];
+
+        // Calculate totals
+        let totals = {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            fiber: 0,
+            sugar: 0
+        };
+
+        const mealData = [];
         
-        Object.entries(this.mealPlan).forEach(([date, meals]) => {
-            Object.values(meals).forEach(recipeId => {
-                if (!recipeId) return;
-                
-                const recipe = this.recipes.find(r => r.id === recipeId);
-                if (!recipe) return;
-                
-                const recipeIngredients = recipe.ingredients || [];
-                recipeIngredients.forEach(ingredient => {
-                    if (!ingredients[ingredient]) {
-                        ingredients[ingredient] = {count: 0, checked: false};
-                    }
-                    ingredients[ingredient].count++;
-                });
+        Object.entries(meals).forEach(([mealType, recipeId]) => {
+            if (!recipeId) return;
+            const recipe = this.recipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            const nutrition = recipe.nutrition || {};
+            mealData.push({
+                name: recipe.name,
+                type: mealType,
+                nutrition: nutrition
             });
+            
+            totals.calories += nutrition.calories || 0;
+            totals.protein += nutrition.protein || 0;
+            totals.carbs += nutrition.carbs || 0;
+            totals.fat += nutrition.fat || 0;
+            totals.fiber += nutrition.fiber || 0;
+            totals.sugar += nutrition.sugar || 0;
         });
 
-        this.shoppingList = Object.entries(ingredients).map(([ingredient, data]) => ({
-            ingredient,
-            count: data.count,
-            checked: false
-        }));
-
-        if (this.shoppingList.length === 0) {
-            alert('No meals planned yet. Add recipes to your meal plan first.');
-            return;
-        }
-
-        this.switchView('shopping-list');
-    }
-
-    toggleShoppingItem(index) {
-        this.shoppingList[index].checked = !this.shoppingList[index].checked;
-        this.renderShoppingList();
-    }
-
-    removeShoppingItem(index) {
-        this.shoppingList.splice(index, 1);
-        this.renderShoppingList();
-    }
-
-    renderShoppingList() {
-        const content = document.getElementById('shopping-list-content');
-        
-        if (this.shoppingList.length === 0) {
-            content.innerHTML = '<p class="empty-message">No shopping list generated yet. Go to Meal Plan and click "Generate Shopping List".</p>';
-            return;
-        }
-
-        // Group by category
-        const categorized = {
-            'Produce': [],
-            'Proteins': [],
-            'Dairy': [],
-            'Pantry': [],
-            'Other': []
-        };
-
-        this.shoppingList.forEach((item, index) => {
-            item.index = index;
-            const lower = item.ingredient.toLowerCase();
-            if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice|pepper|carrot|celery|potato|apple|banana|orange|berry|spinach|kale|broccoli|cauliflower|cucumber|zucchini/)) {
-                categorized['Produce'].push(item);
-            } else if (lower.match(/chicken|beef|pork|fish|meat|egg|turkey|salmon|shrimp|bacon|sausage|ham/)) {
-                categorized['Proteins'].push(item);
-            } else if (lower.match(/milk|cheese|butter|cream|yogurt/)) {
-                categorized['Dairy'].push(item);
-            } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread|sauce|stock|broth|can|jar/)) {
-                categorized['Pantry'].push(item);
-            } else {
-                categorized['Other'].push(item);
-            }
+        extras.forEach(extra => {
+            totals.calories += extra.calories || 0;
+            totals.protein += extra.protein || 0;
+            totals.carbs += extra.carbs || 0;
+            totals.fat += extra.fat || 0;
+            totals.fiber += extra.fiber || 0;
+            totals.sugar += extra.sugar || 0;
         });
 
-        content.innerHTML = Object.entries(categorized)
-            .filter(([_, items]) => items.length > 0)
-            .map(([category, items]) => `
-                <div class="shopping-category">
-                    <h3>${category}</h3>
-                    <ul class="shopping-list-items">
-                        ${items.map(item => `
-                            <li class="shopping-list-item ${item.checked ? 'checked' : ''}" data-index="${item.index}">
-                                <label class="shopping-checkbox">
-                                    <input type="checkbox" ${item.checked ? 'checked' : ''} 
-                                           onchange="recipeManager.toggleShoppingItem(${item.index})">
-                                    <span>${this.escapeHtml(item.ingredient)} ${item.count > 1 ? `(×${item.count})` : ''}</span>
-                                </label>
-                                <button class="shopping-remove-btn" onclick="recipeManager.removeShoppingItem(${item.index})" title="Remove item">×</button>
-                            </li>
-                        `).join('')}
-                    </ul>
+        const dateObj = new Date(dateStr);
+        const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        if (mealData.length === 0 && extras.length === 0) {
+            content.innerHTML = `
+                <div class="nutrition-empty">
+                    <p>No meals planned for ${formattedDate}</p>
+                    <p>Add recipes to your meal plan to see nutrition information.</p>
+                    </div>
+        `;
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="nutrition-summary">
+            <h2>Daily Nutrition - ${formattedDate}</h2>
+            <div class="nutrition-totals">
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${Math.round(totals.calories)}</div>
+                    <div class="nutrition-total-label">Calories</div>
                 </div>
-            `).join('');
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${totals.protein.toFixed(1)}g</div>
+                    <div class="nutrition-total-label">Protein</div>
+                </div>
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${totals.carbs.toFixed(1)}g</div>
+                    <div class="nutrition-total-label">Carbs</div>
+                </div>
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${totals.fat.toFixed(1)}g</div>
+                    <div class="nutrition-total-label">Fat</div>
+                </div>
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${totals.fiber.toFixed(1)}g</div>
+                    <div class="nutrition-total-label">Fiber</div>
+                </div>
+                <div class="nutrition-total-item">
+                    <div class="nutrition-total-value">${totals.sugar.toFixed(1)}g</div>
+                    <div class="nutrition-total-label">Sugar</div>
+                </div>
+            </div>
+        </div>
+
+        ${mealData.length > 0 ? `
+            <div class="nutrition-meals">
+                <h3>Planned Meals</h3>
+                ${mealData.map(meal => `
+                    <div class="nutrition-meal-item">
+                        <div class="nutrition-meal-header">
+                            <div class="nutrition-meal-name">${this.escapeHtml(meal.name)}</div>
+                            <div class="nutrition-meal-type">${meal.type}</div>
+                        </div>
+                        <div class="nutrition-meal-stats">
+                            <div class="nutrition-stat">
+                                <div class="nutrition-stat-value">${Math.round(meal.nutrition.calories || 0)}</div>
+                                <div class="nutrition-stat-label">Calories</div>
+                            </div>
+                            <div class="nutrition-stat">
+                                <div class="nutrition-stat-value">${(meal.nutrition.protein || 0).toFixed(1)}g</div>
+                                <div class="nutrition-stat-label">Protein</div>
+                            </div>
+                            <div class="nutrition-stat">
+                                <div class="nutrition-stat-value">${(meal.nutrition.carbs || 0).toFixed(1)}g</div>
+                                <div class="nutrition-stat-label">Carbs</div>
+                            </div>
+                            <div class="nutrition-stat">
+                                <div class="nutrition-stat-value">${(meal.nutrition.fat || 0).toFixed(1)}g</div>
+                                <div class="nutrition-stat-label">Fat</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
+
+        <div class="nutrition-extras">
+            <h3>Snacks & Extras</h3>
+            ${extras.map((extra, index) => `
+                <div class="extra-item">
+                    <div class="extra-item-info">
+                        <div class="extra-item-name">${this.escapeHtml(extra.name)}</div>
+                        <div class="extra-item-stats">
+                            <span>${Math.round(extra.calories || 0)} cal</span>
+                            <span>${(extra.protein || 0).toFixed(1)}g protein</span>
+                            <span>${(extra.carbs || 0).toFixed(1)}g carbs</span>
+                            <span>${(extra.fat || 0).toFixed(1)}g fat</span>
+                        </div>
+                    </div>
+                    <button class="extra-item-remove" onclick="recipeManager.removeExtra(${index})">×</button>
+                </div>
+            `).join('')}
+            <button class="add-extra-btn" onclick="recipeManager.showAddExtraModal()">+ Add Snack/Extra</button>
+        </div>
+    `;
+}
+
+showAddExtraModal() {
+    const html = `
+        <div style="padding: 20px;">
+            <h3 style="margin-bottom: 16px;">Add Snack or Extra Food</h3>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600;">Name:</label>
+                <input type="text" id="extra-name" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="e.g., Apple, Protein shake">
+            </div>
+            <div class="nutrition-grid" style="margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
+                    <input type="number" id="extra-calories" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="95">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
+                    <input type="number" id="extra-protein" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="0.5">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
+                    <input type="number" id="extra-carbs" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="25">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
+                    <input type="number" id="extra-fat" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="0.3">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
+                    <input type="number" id="extra-fiber" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="4">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
+                    <input type="number" id="extra-sugar" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="19">
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="recipeManager.confirmAddExtra()" class="btn btn-primary" style="flex: 1;">Add Extra</button>
+                <button onclick="recipeManager.cancelAddExtra()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    const tempModal = document.createElement('div');
+    tempModal.id = 'temp-extra-modal';
+    tempModal.className = 'modal active';
+    tempModal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${html}</div>`;
+    document.body.appendChild(tempModal);
+}
+
+confirmAddExtra() {
+    const name = document.getElementById('extra-name').value.trim();
+    if (!name) {
+        alert('Please enter a name');
+        return;
     }
 
-    exportData() {
-        const data = {
-            recipes: this.recipes,
-            mealPlan: this.mealPlan,
-            exportDate: new Date().toISOString()
-        };
-        
-        document.getElementById('export-textarea').value = JSON.stringify(data, null, 2);
-    }
+    const extra = {
+        name: name,
+        calories: parseFloat(document.getElementById('extra-calories').value) || 0,
+        protein: parseFloat(document.getElementById('extra-protein').value) || 0,
+        carbs: parseFloat(document.getElementById('extra-carbs').value) || 0,
+        fat: parseFloat(document.getElementById('extra-fat').value) || 0,
+        fiber: parseFloat(document.getElementById('extra-fiber').value) || 0,
+        sugar: parseFloat(document.getElementById('extra-sugar').value) || 0
+    };
 
-    copyExportToClipboard() {
-        const textarea = document.getElementById('export-textarea');
-        if (!textarea.value) {
-            alert('Please generate export first');
-            return;
-        }
-        
-        textarea.select();
-        document.execCommand('copy');
-        alert('Copied to clipboard!');
+    const dateStr = this.currentNutritionDate;
+    if (!this.dailyExtras[dateStr]) {
+        this.dailyExtras[dateStr] = [];
     }
+    this.dailyExtras[dateStr].push(extra);
+    this.saveData('dailyExtras', this.dailyExtras);
 
-    importData() {
-        const textarea = document.getElementById('import-textarea');
-        try {
-            const data = JSON.parse(textarea.value);
-            
-            if (!data.recipes || !Array.isArray(data.recipes)) {
-                throw new Error('Invalid data format');
-            }
-            
-            if (confirm('This will replace all current data. Continue?')) {
-                this.recipes = data.recipes;
-                this.mealPlan = data.mealPlan || {};
-                this.migrateData();
-                this.saveData('recipes', this.recipes);
-                this.saveData('mealPlan', this.mealPlan);
-                this.renderRecipes();
-                this.updateCollectionFilter();
-                this.renderMealPlan();
-                textarea.value = '';
-                alert('Data imported successfully!');
-            }
-        } catch (e) {
-            alert('Error importing data: ' + e.message);
-        }
+    this.cancelAddExtra();
+    this.renderNutritionView();
+}
+
+cancelAddExtra() {
+    const tempModal = document.getElementById('temp-extra-modal');
+    if (tempModal) {
+        tempModal.remove();
     }
 }
 
+removeExtra(index) {
+    const dateStr = this.currentNutritionDate;
+    if (this.dailyExtras[dateStr]) {
+        this.dailyExtras[dateStr].splice(index, 1);
+        if (this.dailyExtras[dateStr].length === 0) {
+            delete this.dailyExtras[dateStr];
+        }
+        this.saveData('dailyExtras', this.dailyExtras);
+        this.renderNutritionView();
+    }
+}
+
+generateShoppingList() {
+    const ingredients = {};
+    
+    Object.entries(this.mealPlan).forEach(([date, meals]) => {
+        Object.values(meals).forEach(recipeId => {
+            if (!recipeId) return;
+            
+            const recipe = this.recipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            const recipeIngredients = recipe.ingredients || [];
+            recipeIngredients.forEach(ingredient => {
+                if (!ingredients[ingredient]) {
+                    ingredients[ingredient] = {count: 0, checked: false};
+                }
+                ingredients[ingredient].count++;
+            });
+        });
+    });
+
+    this.shoppingList = Object.entries(ingredients).map(([ingredient, data]) => ({
+        ingredient,
+        count: data.count,
+        checked: false
+    }));
+
+    if (this.shoppingList.length === 0) {
+        alert('No meals planned yet. Add recipes to your meal plan first.');
+        return;
+    }
+
+    this.switchView('shopping-list');
+}
+
+toggleShoppingItem(index) {
+    this.shoppingList[index].checked = !this.shoppingList[index].checked;
+    this.renderShoppingList();
+}
+
+removeShoppingItem(index) {
+    this.shoppingList.splice(index, 1);
+    this.renderShoppingList();
+}
+
+renderShoppingList() {
+    const content = document.getElementById('shopping-list-content');
+    
+    if (this.shoppingList.length === 0) {
+        content.innerHTML = '<p class="empty-message">No shopping list generated yet. Go to Meal Plan and click "Generate Shopping List".</p>';
+        return;
+    }
+
+    const categorized = {
+        'Produce': [],
+        'Proteins': [],
+        'Dairy': [],
+        'Pantry': [],
+        'Other': []
+    };
+
+    this.shoppingList.forEach((item, index) => {
+        item.index = index;
+        const lower = item.ingredient.toLowerCase();
+        if (lower.match(/vegetable|fruit|lettuce|tomato|onion|garlic|herb|spice|pepper|carrot|celery|potato|apple|banana|orange|berry|spinach|kale|broccoli|cauliflower|cucumber|zucchini/)) {
+            categorized['Produce'].push(item);
+        } else if (lower.match(/chicken|beef|pork|fish|meat|egg|turkey|salmon|shrimp|bacon|sausage|ham/)) {
+            categorized['Proteins'].push(item);
+        } else if (lower.match(/milk|cheese|butter|cream|yogurt/)) {
+            categorized['Dairy'].push(item);
+        } else if (lower.match(/flour|sugar|salt|oil|rice|pasta|bread|sauce|stock|broth|can|jar/)) {
+            categorized['Pantry'].push(item);
+        } else {
+            categorized['Other'].push(item);
+        }
+    });
+
+    content.innerHTML = Object.entries(categorized)
+        .filter(([_, items]) => items.length > 0)
+        .map(([category, items]) => `
+            <div class="shopping-category">
+                <h3>${category}</h3>
+                <ul class="shopping-list-items">
+                    ${items.map(item => `
+                        <li class="shopping-list-item ${item.checked ? 'checked' : ''}" data-index="${item.index}">
+                            <label class="shopping-checkbox">
+                                <input type="checkbox" ${item.checked ? 'checked' : ''} 
+                                       onchange="recipeManager.toggleShoppingItem(${item.index})">
+                                <span>${this.escapeHtml(item.ingredient)} ${item.count > 1 ? `(×${item.count})` : ''}</span>
+                            </label>
+                            <button class="shopping-remove-btn" onclick="recipeManager.removeShoppingItem(${item.index})" title="Remove item">×</button>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `).join('');
+}
+
+exportData() {
+    const data = {
+        recipes: this.recipes,
+        mealPlan: this.mealPlan,
+        dailyExtras: this.dailyExtras,
+        exportDate: new Date().toISOString()
+    };
+    
+    document.getElementById('export-textarea').value = JSON.stringify(data, null, 2);
+}
+
+copyExportToClipboard() {
+    const textarea = document.getElementById('export-textarea');
+    if (!textarea.value) {
+        alert('Please generate export first');
+        return;
+    }
+    
+    textarea.select();
+    document.execCommand('copy');
+    alert('Copied to clipboard!');
+}
+
+importData() {
+    const textarea = document.getElementById('import-textarea');
+    try {
+        const data = JSON.parse(textarea.value);
+        
+        if (!data.recipes || !Array.isArray(data.recipes)) {
+            throw new Error('Invalid data format');
+        }
+        
+        if (confirm('This will replace all current data. Continue?')) {
+            this.recipes = data.recipes;
+            this.mealPlan = data.mealPlan || {};
+            this.dailyExtras = data.dailyExtras || {};
+            this.migrateData();
+            this.saveData('recipes', this.recipes);
+            this.saveData('mealPlan', this.mealPlan);
+            this.saveData('dailyExtras', this.dailyExtras);
+            this.renderRecipes();
+            this.updateCollectionFilter();
+            this.renderMealPlan();
+            textarea.value = '';
+            alert('Data imported successfully!');
+        }
+    } catch (e) {
+        alert('Error importing data: ' + e.message);
+    }
+}
+    }
 // Initialize the app
 const recipeManager = new RecipeManager();
