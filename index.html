@@ -11,12 +11,13 @@
         <header>
             <h1>Recipe Manager</h1>
             <nav>
-                <button class="nav-btn active" data-view="recipes">Recipes</button>
-                <button class="nav-btn" data-view="meal-plan">Meal Plan</button>
-                <button class="nav-btn" data-view="nutrition">Nutrition</button>
-                <button class="nav-btn" data-view="shopping-list">Shopping List</button>
-                <button class="nav-btn" data-view="import-export">Import/Export</button>
-            </nav>
+    <button class="nav-btn active" data-view="recipes">Recipes</button>
+    <button class="nav-btn" data-view="meal-plan">Meal Plan</button>
+    <button class="nav-btn" data-view="nutrition">Nutrition</button>
+    <button class="nav-btn" data-view="quick-foods">Quick Foods</button>
+    <button class="nav-btn" data-view="shopping-list">Shopping List</button>
+    <button class="nav-btn" data-view="import-export">Import/Export</button>
+</nav>
         </header>
 
         <main>
@@ -60,7 +61,16 @@
                 </div>
                 <div id="nutrition-content" class="nutrition-content"></div>
             </div>
-
+            
+<!-- Quick Foods View -->
+<div id="quick-foods-view" class="view">
+    <div class="view-header">
+        <button id="add-quick-food-btn" class="btn btn-primary">+ Add Quick Food</button>
+        <p style="color: #666; margin: 0;">Save common snacks and foods to quickly add to your daily nutrition</p>
+    </div>
+    <div id="quick-foods-grid" class="quick-foods-grid"></div>
+</div>
+            
             <!-- Shopping List View -->
             <div id="shopping-list-view" class="view">
                 <div class="view-header">
@@ -204,3 +214,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+
