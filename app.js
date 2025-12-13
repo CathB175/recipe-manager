@@ -1081,6 +1081,7 @@ cancelNutritionGoals() {
                 </select>
             </div>
         `;
+    }
   setupNutritionDatePicker() {
     const picker = document.getElementById('nutrition-date-picker');
     picker.value = this.currentNutritionDate;
