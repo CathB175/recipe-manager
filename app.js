@@ -24,40 +24,32 @@ class RecipeManager {
     }
 
     migrateData() {
-        // Fix any existing recipes that might have undefined arrays or bad data
         let validRecipes = [];
         
         this.recipes.forEach(recipe => {
             try {
-                // Ensure recipe has an id
                 if (!recipe.id) {
                     recipe.id = Date.now().toString() + Math.random();
                 }
                 
-                // Ensure recipe has a name
                 if (!recipe.name || typeof recipe.name !== 'string') {
                     recipe.name = 'Untitled Recipe';
                 }
                 
-                // Fix all arrays
                 recipe.collections = Array.isArray(recipe.collections) ? recipe.collections : [];
                 recipe.keywords = Array.isArray(recipe.keywords) ? recipe.keywords : [];
                 recipe.ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
                 recipe.steps = Array.isArray(recipe.steps) ? recipe.steps : [];
                 
-                // Fix numbers
                 recipe.servings = parseInt(recipe.servings) || 4;
                 recipe.prepTime = parseInt(recipe.prepTime) || 0;
                 recipe.cookTime = parseInt(recipe.cookTime) || 0;
                 
-                // Fix strings
                 recipe.source = recipe.source || '';
                 recipe.image = recipe.image || '';
                 recipe.notes = recipe.notes || '';
                 
-                // Fix nutrition - now as object
                 if (typeof recipe.nutrition === 'string') {
-                    // Old format, convert to new
                     recipe.nutrition = {
                         calories: 0,
                         protein: 0,
@@ -88,7 +80,6 @@ class RecipeManager {
     }
 
     setupEventListeners() {
-        // Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const view = e.target.dataset.view;
@@ -96,7 +87,6 @@ class RecipeManager {
             });
         });
 
-        // Recipe Modal
         document.getElementById('add-recipe-btn').addEventListener('click', () => {
             this.openRecipeModal();
         });
@@ -114,12 +104,10 @@ class RecipeManager {
             this.saveRecipe();
         });
 
-        // Recipe Detail Modal
         document.querySelector('#recipe-detail-modal .close').addEventListener('click', () => {
             this.closeRecipeDetailModal();
         });
 
-        // Search and Filter
         document.getElementById('search-input').addEventListener('input', () => {
             this.renderRecipes();
         });
@@ -128,7 +116,6 @@ class RecipeManager {
             this.renderRecipes();
         });
 
-        // Meal Plan
         document.querySelectorAll('input[name="plan-days"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 this.mealPlanDays = parseInt(e.target.value);
@@ -140,7 +127,6 @@ class RecipeManager {
             this.generateShoppingList();
         });
 
-        // Shopping List
         document.getElementById('print-shopping-list').addEventListener('click', () => {
             window.print();
         });
@@ -152,7 +138,6 @@ class RecipeManager {
             }
         });
 
-        // Import/Export
         document.getElementById('export-btn').addEventListener('click', () => {
             this.exportData();
         });
@@ -165,7 +150,6 @@ class RecipeManager {
             this.importData();
         });
 
-        // Close modals on outside click
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
@@ -173,416 +157,46 @@ class RecipeManager {
         });
     }
 
-    ssetupNutritionDatePicker() {
-    const picker = document.getElementById('nutrition-date-picker');
-    picker.value = this.currentNutritionDate;
-    picker.addEventListener('change', (e) => {
-        this.currentNutritionDate = e.target.value;
-        this.renderNutritionView();
-    });
-    
-    // Load or initialize nutrition goals
-    this.nutritionGoals = this.loadData('nutritionGoals') || {
-        calories: 2000,
-        protein: 150,
-        carbs: 225,
-        fat: 65,
-        fiber: 25,
-        sugar: 50
-    };
-}
-
-showNutritionGoalsModal() {
-    const goals = this.nutritionGoals;
-    
-    const html = `
-        <div style="padding: 20px;">
-            <h3 style="margin-bottom: 16px;">Daily Nutrition Goals</h3>
-            <p style="margin-bottom: 20px; color: #666;">Set your daily nutrition targets. You can update these anytime.</p>
-            <div class="nutrition-grid" style="margin-bottom: 20px;">
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
-                    <input type="number" id="goal-calories" value="${goals.calories}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
-                    <input type="number" id="goal-protein" value="${goals.protein}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
-                    <input type="number" id="goal-carbs" value="${goals.carbs}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
-                    <input type="number" id="goal-fat" value="${goals.fat}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
-                    <input type="number" id="goal-fiber" value="${goals.fiber}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
-                    <input type="number" id="goal-sugar" value="${goals.sugar}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button onclick="recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>
-                <button onclick="recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    const tempModal = document.createElement('div');
-    tempModal.id = 'temp-goals-modal';
-    tempModal.className = 'modal active';
-    tempModal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${html}</div>`;
-    document.body.appendChild(tempModal);
-}
-
-saveNutritionGoals() {
-    this.nutritionGoals = {
-        calories: parseFloat(document.getElementById('goal-calories').value) || 2000,
-        protein: parseFloat(document.getElementById('goal-protein').value) || 150,
-        carbs: parseFloat(document.getElementById('goal-carbs').value) || 225,
-        fat: parseFloat(document.getElementById('goal-fat').value) || 65,
-        fiber: parseFloat(document.getElementById('goal-fiber').value) || 25,
-        sugar: parseFloat(document.getElementById('goal-sugar').value) || 50
-    };
-    
-    this.saveData('nutritionGoals', this.nutritionGoals);
-    this.cancelNutritionGoals();
-    this.renderNutritionView();
-}
-
-cancelNutritionGoals() {
-    const tempModal = document.getElementById('temp-goals-modal');
-    if (tempModal) {
-        tempModal.remove();
-    }
-}
-
-renderNutritionView() {
-    const content = document.getElementById('nutrition-content');
-    const dateStr = this.currentNutritionDate;
-    const meals = this.mealPlan[dateStr] || {};
-    const extras = this.dailyExtras[dateStr] || [];
-
-    // Calculate totals
-    let totals = {
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugar: 0
-    };
-
-    // Order meals properly: breakfast, lunch, dinner
-    const mealOrder = ['breakfast', 'lunch', 'dinner'];
-    const mealData = [];
-    
-    mealOrder.forEach(mealType => {
-        const recipeId = meals[mealType];
-        if (!recipeId) return;
-        
-        const recipe = this.recipes.find(r => r.id === recipeId);
-        if (!recipe) return;
-        
-        const nutrition = recipe.nutrition || {};
-        mealData.push({
-            name: recipe.name,
-            type: mealType,
-            nutrition: nutrition
+    setupNutritionDatePicker() {
+        const picker = document.getElementById('nutrition-date-picker');
+        picker.value = this.currentNutritionDate;
+        picker.addEventListener('change', (e) => {
+            this.currentNutritionDate = e.target.value;
+            this.renderNutritionView();
         });
         
-        totals.calories += nutrition.calories || 0;
-        totals.protein += nutrition.protein || 0;
-        totals.carbs += nutrition.carbs || 0;
-        totals.fat += nutrition.fat || 0;
-        totals.fiber += nutrition.fiber || 0;
-        totals.sugar += nutrition.sugar || 0;
-    });
-
-    extras.forEach(extra => {
-        totals.calories += extra.calories || 0;
-        totals.protein += extra.protein || 0;
-        totals.carbs += extra.carbs || 0;
-        totals.fat += extra.fat || 0;
-        totals.fiber += extra.fiber || 0;
-        totals.sugar += extra.sugar || 0;
-    });
-
-    const dateObj = new Date(dateStr);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    const goals = this.nutritionGoals;
-
-    if (mealData.length === 0 && extras.length === 0) {
-        content.innerHTML = `
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-                <button class="btn btn-secondary" onclick="recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button>
-            </div>
-            <div class="nutrition-empty">
-                <p>No meals planned for ${formattedDate}</p>
-                <p>Add recipes to your meal plan to see nutrition information.</p>
-            </div>
-        `;
-        return;
+        this.nutritionGoals = this.loadData('nutritionGoals') || {
+            calories: 2000,
+            protein: 150,
+            carbs: 225,
+            fat: 65,
+            fiber: 25,
+            sugar: 50
+        };
     }
 
-    const calcPercent = (actual, goal) => {
-        if (!goal) return 0;
-        return Math.round((actual / goal) * 100);
-    };
+    switchView(view) {
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelectorAll('.view').forEach(v => {
+            v.classList.remove('active');
+        });
 
-    const getProgressColor = (percent) => {
-        if (percent < 80) return '#ef4444'; // Red
-        if (percent < 95) return '#f59e0b'; // Orange
-        if (percent <= 110) return '#10b981'; // Green
-        return '#ef4444'; // Red for over
-    };
+        document.querySelector(`[data-view="${view}"]`).classList.add('active');
+        document.getElementById(`${view}-view`).classList.add('active');
+        this.currentView = view;
 
-    content.innerHTML = `
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-            <button class="btn btn-secondary" onclick="recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button>
-        </div>
-
-        <div class="nutrition-summary-modern">
-            <div class="nutrition-summary-header">
-                <h2>${formattedDate}</h2>
-            </div>
-            
-            <div class="nutrition-macros-grid">
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Calories</span>
-                        <span class="macro-value">${Math.round(totals.calories)} / ${goals.calories}</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.calories, goals.calories), 100)}%; background: ${getProgressColor(calcPercent(totals.calories, goals.calories))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.calories, goals.calories)}%</div>
-                </div>
-
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Protein</span>
-                        <span class="macro-value">${totals.protein.toFixed(1)}g / ${goals.protein}g</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.protein, goals.protein), 100)}%; background: ${getProgressColor(calcPercent(totals.protein, goals.protein))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.protein, goals.protein)}%</div>
-                </div>
-
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Carbs</span>
-                        <span class="macro-value">${totals.carbs.toFixed(1)}g / ${goals.carbs}g</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.carbs, goals.carbs), 100)}%; background: ${getProgressColor(calcPercent(totals.carbs, goals.carbs))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.carbs, goals.carbs)}%</div>
-                </div>
-
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Fat</span>
-                        <span class="macro-value">${totals.fat.toFixed(1)}g / ${goals.fat}g</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.fat, goals.fat), 100)}%; background: ${getProgressColor(calcPercent(totals.fat, goals.fat))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.fat, goals.fat)}%</div>
-                </div>
-
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Fiber</span>
-                        <span class="macro-value">${totals.fiber.toFixed(1)}g / ${goals.fiber}g</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.fiber, goals.fiber), 100)}%; background: ${getProgressColor(calcPercent(totals.fiber, goals.fiber))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.fiber, goals.fiber)}%</div>
-                </div>
-
-                <div class="macro-card">
-                    <div class="macro-header">
-                        <span class="macro-label">Sugar</span>
-                        <span class="macro-value">${totals.sugar.toFixed(1)}g / ${goals.sugar}g</span>
-                    </div>
-                    <div class="macro-progress-bar">
-                        <div class="macro-progress-fill" style="width: ${Math.min(calcPercent(totals.sugar, goals.sugar), 100)}%; background: ${getProgressColor(calcPercent(totals.sugar, goals.sugar))}"></div>
-                    </div>
-                    <div class="macro-percent">${calcPercent(totals.sugar, goals.sugar)}%</div>
-                </div>
-            </div>
-        </div>
-
-        ${mealData.length > 0 ? `
-            <div class="nutrition-meals">
-                <h3>Planned Meals</h3>
-                ${mealData.map(meal => `
-                    <div class="nutrition-meal-item">
-                        <div class="nutrition-meal-header">
-                            <div class="nutrition-meal-name">${this.escapeHtml(meal.name)}</div>
-                            <div class="nutrition-meal-type">${meal.type}</div>
-                        </div>
-                        <div class="nutrition-meal-stats">
-                            <div class="nutrition-stat">
-                                <div class="nutrition-stat-value">${Math.round(meal.nutrition.calories || 0)}</div>
-                                <div class="nutrition-stat-label">Calories</div>
-                            </div>
-                            <div class="nutrition-stat">
-                                <div class="nutrition-stat-value">${(meal.nutrition.protein || 0).toFixed(1)}g</div>
-                                <div class="nutrition-stat-label">Protein</div>
-                            </div>
-                            <div class="nutrition-stat">
-                                <div class="nutrition-stat-value">${(meal.nutrition.carbs || 0).toFixed(1)}g</div>
-                                <div class="nutrition-stat-label">Carbs</div>
-                            </div>
-                            <div class="nutrition-stat">
-                                <div class="nutrition-stat-value">${(meal.nutrition.fat || 0).toFixed(1)}g</div>
-                                <div class="nutrition-stat-label">Fat</div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        ` : ''}
-
-        <div class="nutrition-extras">
-            <h3>Snacks & Extras</h3>
-            ${extras.map((extra, index) => `
-                <div class="extra-item">
-                    <div class="extra-item-info">
-                        <div class="extra-item-name">${this.escapeHtml(extra.name)}</div>
-                        <div class="extra-item-stats">
-                            <span>${Math.round(extra.calories || 0)} cal</span>
-                            <span>${(extra.protein || 0).toFixed(1)}g protein</span>
-                            <span>${(extra.carbs || 0).toFixed(1)}g carbs</span>
-                            <span>${(extra.fat || 0).toFixed(1)}g fat</span>
-                        </div>
-                    </div>
-                    <button class="extra-item-remove" onclick="recipeManager.removeExtra(${index})">×</button>
-                </div>
-            `).join('')}
-            <button class="add-extra-btn" onclick="recipeManager.showAddExtraModal()">+ Add Snack/Extra</button>
-        </div>
-    `;
-}
-
-    sswitchView(view) {
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelectorAll('.view').forEach(v => {
-        v.classList.remove('active');
-    });
-
-    document.querySelector(`[data-view="${view}"]`).classList.add('active');
-    document.getElementById(`${view}-view`).classList.add('active');
-    this.currentView = view;
-
-    if (view === 'shopping-list') {
-        this.renderShoppingList();
-    } else if (view === 'import-export') {
-        this.addClearAllButton();
-    } else if (view === 'meal-plan') {
-        this.renderMealPlan();
-    } else if (view === 'nutrition') {
-        this.renderNutritionView();
+        if (view === 'shopping-list') {
+            this.renderShoppingList();
+        } else if (view === 'import-export') {
+            this.addClearAllButton();
+        } else if (view === 'meal-plan') {
+            this.renderMealPlan();
+        } else if (view === 'nutrition') {
+            this.renderNutritionView();
+        }
     }
-}
-   setupNutritionDatePicker() {
-    const picker = document.getElementById('nutrition-date-picker');
-    picker.value = this.currentNutritionDate;
-    picker.addEventListener('change', (e) => {
-        this.currentNutritionDate = e.target.value;
-        this.renderNutritionView();
-    });
-    
-    // Load or initialize nutrition goals
-    this.nutritionGoals = this.loadData('nutritionGoals') || {
-        calories: 2000,
-        protein: 150,
-        carbs: 225,
-        fat: 65,
-        fiber: 25,
-        sugar: 50
-    };
-}
-
-showNutritionGoalsModal() {
-    const goals = this.nutritionGoals;
-    
-    const html = `
-        <div style="padding: 20px;">
-            <h3 style="margin-bottom: 16px;">Daily Nutrition Goals</h3>
-            <p style="margin-bottom: 20px; color: #666;">Set your daily nutrition targets. You can update these anytime.</p>
-            <div class="nutrition-grid" style="margin-bottom: 20px;">
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
-                    <input type="number" id="goal-calories" value="${goals.calories}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
-                    <input type="number" id="goal-protein" value="${goals.protein}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
-                    <input type="number" id="goal-carbs" value="${goals.carbs}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
-                    <input type="number" id="goal-fat" value="${goals.fat}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
-                    <input type="number" id="goal-fiber" value="${goals.fiber}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
-                    <input type="number" id="goal-sugar" value="${goals.sugar}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button onclick="recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>
-                <button onclick="recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    const tempModal = document.createElement('div');
-    tempModal.id = 'temp-goals-modal';
-    tempModal.className = 'modal active';
-    tempModal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${html}</div>`;
-    document.body.appendChild(tempModal);
-}
-
-saveNutritionGoals() {
-    this.nutritionGoals = {
-        calories: parseFloat(document.getElementById('goal-calories').value) || 2000,
-        protein: parseFloat(document.getElementById('goal-protein').value) || 150,
-        carbs: parseFloat(document.getElementById('goal-carbs').value) || 225,
-        fat: parseFloat(document.getElementById('goal-fat').value) || 65,
-        fiber: parseFloat(document.getElementById('goal-fiber').value) || 25,
-        sugar: parseFloat(document.getElementById('goal-sugar').value) || 50
-    };
-    
-    this.saveData('nutritionGoals', this.nutritionGoals);
-    this.cancelNutritionGoals();
-    this.renderNutritionView();
-}
-
-cancelNutritionGoals() {
-    const tempModal = document.getElementById('temp-goals-modal');
-    if (tempModal) {
-        tempModal.remove();
-    }
-} 
 
     addClearAllButton() {
         const importExportView = document.getElementById('import-export-view');
@@ -660,7 +274,6 @@ cancelNutritionGoals() {
             document.getElementById('recipe-steps').value = (recipe.steps || []).join('\n');
             document.getElementById('recipe-notes').value = recipe.notes || '';
             
-            // Nutrition fields
             const nutrition = recipe.nutrition || {};
             document.getElementById('recipe-calories').value = nutrition.calories || '';
             document.getElementById('recipe-protein').value = nutrition.protein || '';
@@ -1009,7 +622,6 @@ cancelNutritionGoals() {
             }
         });
         
-        // Clean old extras too
         Object.keys(this.dailyExtras).forEach(dateStr => {
             const planDate = new Date(dateStr);
             if (planDate < today) {
@@ -1082,66 +694,47 @@ cancelNutritionGoals() {
             </div>
         `;
     }
-  setupNutritionDatePicker() {
-    const picker = document.getElementById('nutrition-date-picker');
-    picker.value = this.currentNutritionDate;
-    picker.addEventListener('change', (e) => {
-        this.currentNutritionDate = e.target.value;
-        this.renderNutritionView();
-    });
-    
-    // Load or initialize nutrition goals
-    this.nutritionGoals = this.loadData('nutritionGoals') || {
-        calories: 2000,
-        protein: 150,
-        carbs: 225,
-        fat: 65,
-        fiber: 25,
-        sugar: 50
-    };
-}
 
-showNutritionGoalsModal() {
-    const goals = this.nutritionGoals;
-    
-    const html = `
-        <div style="padding: 20px;">
-            <h3 style="margin-bottom: 16px;">Daily Nutrition Goals</h3>
-            <p style="margin-bottom: 20px; color: #666;">Set your daily nutrition targets. You can update these anytime.</p>
-            <div class="nutrition-grid" style="margin-bottom: 20px;">
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
-                    <input type="number" id="goal-calories" value="${goals.calories}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
-                    <input type="number" id="goal-protein" value="${goals.protein}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
-                    <input type="number" id="goal-carbs" value="${goals.carbs}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
-                    <input type="number" id="goal-fat" value="${goals.fat}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
-                    <input type="number" id="goal-fiber" value="${goals.fiber}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
-                    <input type="number" id="goal-sugar" value="${goals.sugar}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                </div>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button onclick="recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>
-                <button onclick="recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    const tempModal = document.createElement('div');
+    showNutritionGoalsModal() {
+        const goals = this.nutritionGoals;
+        
+        const html = `
+            <div style="padding: 20px;">
+                <h3 style="margin-bottom: 16px;">Daily Nutrition Goals</h3>
+                <p style="margin-bottom: 20px; color: #666;">Set your daily nutrition targets. You can update these anytime.</p>
+                <div class="nutrition-grid" style="margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
+                        <input type="number" id="goal-calories" value="${goals.calories}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
+                        <input type="number" id="goal-protein" value="${goals.protein}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
+                        <input type="number" id="goal-carbs" value="${goals.carbs}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
+                        <input type="number" id="goal-fat" value="${goals.fat}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
+                        <input type="number" id="goal-fiber" value="${goals.fiber}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+</div>
+<div>
+<label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
+<input type="number" id="goal-sugar" value="${goals.sugar}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">
+</div>
+</div>
+<div style="display: flex; gap: 12px;">
+<button onclick="recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>
+<button onclick="recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+</div>
+</div>
+`;
+        const tempModal = document.createElement('div');
     tempModal.id = 'temp-goals-modal';
     tempModal.className = 'modal active';
     tempModal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${html}</div>`;
@@ -1176,7 +769,6 @@ renderNutritionView() {
     const meals = this.mealPlan[dateStr] || {};
     const extras = this.dailyExtras[dateStr] || [];
 
-    // Calculate totals
     let totals = {
         calories: 0,
         protein: 0,
@@ -1186,7 +778,6 @@ renderNutritionView() {
         sugar: 0
     };
 
-    // Order meals properly: breakfast, lunch, dinner
     const mealOrder = ['breakfast', 'lunch', 'dinner'];
     const mealData = [];
     
@@ -1245,10 +836,10 @@ renderNutritionView() {
     };
 
     const getProgressColor = (percent) => {
-        if (percent < 80) return '#ef4444'; // Red
-        if (percent < 95) return '#f59e0b'; // Orange
-        if (percent <= 110) return '#10b981'; // Green
-        return '#ef4444'; // Red for over
+        if (percent < 80) return '#ef4444';
+        if (percent < 95) return '#f59e0b';
+        if (percent <= 110) return '#10b981';
+        return '#ef4444';
     };
 
     content.innerHTML = `
@@ -1382,7 +973,6 @@ renderNutritionView() {
         </div>
     `;
 }
-
 
 showAddExtraModal() {
     const html = `
