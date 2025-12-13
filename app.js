@@ -1,18 +1,20 @@
 // Recipe Manager Application
 class RecipeManager {
     constructor() {
-        this.recipes = this.loadData('recipes') || [];
-        this.mealPlan = this.loadData('mealPlan') || {};
-        this.dailyExtras = this.loadData('dailyExtras') || {};
-        this.shoppingList = [];
-        this.currentView = 'recipes';
-        this.editingRecipeId = null;
-        this.mealPlanDays = 7;
-        this.currentNutritionDate = new Date().toISOString().split('T')[0];
-        
-        this.migrateData();
-        this.init();
-    }
+    this.recipes = this.loadData('recipes') || [];
+    this.mealPlan = this.loadData('mealPlan') || {};
+    this.dailyExtras = this.loadData('dailyExtras') || {};
+    this.quickFoods = this.loadData('quickFoods') || []; // ADD THIS LINE
+    this.shoppingList = [];
+    this.currentView = 'recipes';
+    this.editingRecipeId = null;
+    this.editingQuickFoodId = null; // ADD THIS LINE
+    this.mealPlanDays = 7;
+    this.currentNutritionDate = new Date().toISOString().split('T')[0];
+    
+    this.migrateData();
+    this.init();
+}
 
     init() {
         this.setupEventListeners();
@@ -150,6 +152,11 @@ class RecipeManager {
             this.importData();
         });
 
+        // Quick Foods
+document.getElementById('add-quick-food-btn').addEventListener('click', () => {
+    this.openQuickFoodModal();
+});
+        
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
@@ -176,27 +183,29 @@ class RecipeManager {
     }
 
     switchView(view) {
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelectorAll('.view').forEach(v => {
-            v.classList.remove('active');
-        });
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.view').forEach(v => {
+        v.classList.remove('active');
+    });
 
-        document.querySelector(`[data-view="${view}"]`).classList.add('active');
-        document.getElementById(`${view}-view`).classList.add('active');
-        this.currentView = view;
+    document.querySelector(`[data-view="${view}"]`).classList.add('active');
+    document.getElementById(`${view}-view`).classList.add('active');
+    this.currentView = view;
 
-        if (view === 'shopping-list') {
-            this.renderShoppingList();
-        } else if (view === 'import-export') {
-            this.addClearAllButton();
-        } else if (view === 'meal-plan') {
-            this.renderMealPlan();
-        } else if (view === 'nutrition') {
-            this.renderNutritionView();
-        }
+    if (view === 'shopping-list') {
+        this.renderShoppingList();
+    } else if (view === 'import-export') {
+        this.addClearAllButton();
+    } else if (view === 'meal-plan') {
+        this.renderMealPlan();
+    } else if (view === 'nutrition') {
+        this.renderNutritionView();
+    } else if (view === 'quick-foods') { // ADD THIS
+        this.renderQuickFoods();
     }
+}
 
     addClearAllButton() {
         const importExportView = document.getElementById('import-export-view');
@@ -215,19 +224,21 @@ class RecipeManager {
             document.getElementById('clear-all-data-btn').addEventListener('click', () => {
                 if (confirm('⚠️ WARNING: This will delete ALL recipes and meal plans permanently. This cannot be undone!\n\nAre you absolutely sure?')) {
                     if (confirm('Last chance! Click OK to delete everything.')) {
-                        this.recipes = [];
-                        this.mealPlan = {};
-                        this.dailyExtras = {};
-                        this.shoppingList = [];
-                        localStorage.removeItem('recipes');
-                        localStorage.removeItem('mealPlan');
-                        localStorage.removeItem('dailyExtras');
-                        this.renderRecipes();
-                        this.updateCollectionFilter();
-                        this.renderMealPlan();
-                        alert('All data has been cleared.');
-                        this.switchView('recipes');
-                    }
+    this.recipes = [];
+    this.mealPlan = {};
+    this.dailyExtras = {};
+    this.quickFoods = []; // ADD THIS LINE
+    this.shoppingList = [];
+    localStorage.removeItem('recipes');
+    localStorage.removeItem('mealPlan');
+    localStorage.removeItem('dailyExtras');
+    localStorage.removeItem('quickFoods'); // ADD THIS LINE
+    this.renderRecipes();
+    this.updateCollectionFilter();
+    this.renderMealPlan();
+    alert('All data has been cleared.');
+    this.switchView('recipes');
+}
                 }
             });
         }
@@ -1069,6 +1080,181 @@ removeExtra(index) {
     }
 }
 
+    openQuickFoodModal(food = null) {
+    this.editingQuickFoodId = food ? food.id : null;
+    
+    const html = `
+        <div style="padding: 20px;">
+            <h3 style="margin-bottom: 16px;">${food ? 'Edit' : 'Add'} Quick Food</h3>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600;">Name: *</label>
+                <input type="text" id="qf-name" value="${food ? food.name : ''}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="e.g., Apple, Protein Bar, Yogurt">
+            </div>
+            <div class="nutrition-grid" style="margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Calories:</label>
+                    <input type="number" id="qf-calories" value="${food ? food.calories : ''}" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="95">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Protein (g):</label>
+                    <input type="number" id="qf-protein" value="${food ? food.protein : ''}" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="0.5">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Carbs (g):</label>
+                    <input type="number" id="qf-carbs" value="${food ? food.carbs : ''}" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="25">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fat (g):</label>
+                    <input type="number" id="qf-fat" value="${food ? food.fat : ''}" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="0.3">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Fiber (g):</label>
+                    <input type="number" id="qf-fiber" value="${food ? food.fiber : ''}" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="4">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Sugar (g):</label>
+                    <input type="number" id="qf-sugar" value="${food ? food.sugar : ''}" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="19">
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="recipeManager.saveQuickFood()" class="btn btn-primary" style="flex: 1;">Save</button>
+                <button onclick="recipeManager.cancelQuickFood()" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    const tempModal = document.createElement('div');
+    tempModal.id = 'temp-quick-food-modal';
+    tempModal.className = 'modal active';
+    tempModal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${html}</div>`;
+    document.body.appendChild(tempModal);
+}
+
+saveQuickFood() {
+    const name = document.getElementById('qf-name').value.trim();
+    if (!name) {
+        alert('Please enter a name');
+        return;
+    }
+
+    const food = {
+        id: this.editingQuickFoodId || Date.now().toString(),
+        name: name,
+        calories: parseFloat(document.getElementById('qf-calories').value) || 0,
+        protein: parseFloat(document.getElementById('qf-protein').value) || 0,
+        carbs: parseFloat(document.getElementById('qf-carbs').value) || 0,
+        fat: parseFloat(document.getElementById('qf-fat').value) || 0,
+        fiber: parseFloat(document.getElementById('qf-fiber').value) || 0,
+        sugar: parseFloat(document.getElementById('qf-sugar').value) || 0
+    };
+
+    if (this.editingQuickFoodId) {
+        const index = this.quickFoods.findIndex(f => f.id === this.editingQuickFoodId);
+        if (index !== -1) {
+            this.quickFoods[index] = food;
+        }
+    } else {
+        this.quickFoods.push(food);
+    }
+
+    this.saveData('quickFoods', this.quickFoods);
+    this.cancelQuickFood();
+    this.renderQuickFoods();
+    alert('Quick food saved!');
+}
+
+cancelQuickFood() {
+    const tempModal = document.getElementById('temp-quick-food-modal');
+    if (tempModal) {
+        tempModal.remove();
+    }
+    this.editingQuickFoodId = null;
+}
+
+deleteQuickFood(id) {
+    if (confirm('Delete this quick food?')) {
+        this.quickFoods = this.quickFoods.filter(f => f.id !== id);
+        this.saveData('quickFoods', this.quickFoods);
+        this.renderQuickFoods();
+    }
+}
+
+addQuickFoodToDay(foodId) {
+    const food = this.quickFoods.find(f => f.id === foodId);
+    if (!food) return;
+
+    const dateStr = this.currentNutritionDate;
+    if (!this.dailyExtras[dateStr]) {
+        this.dailyExtras[dateStr] = [];
+    }
+    
+    this.dailyExtras[dateStr].push({
+        name: food.name,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        fiber: food.fiber,
+        sugar: food.sugar
+    });
+    
+    this.saveData('dailyExtras', this.dailyExtras);
+    alert(`${food.name} added to ${this.currentNutritionDate}!`);
+    
+    // Switch to nutrition view if not already there
+    if (this.currentView !== 'nutrition') {
+        this.switchView('nutrition');
+    } else {
+        this.renderNutritionView();
+    }
+}
+
+renderQuickFoods() {
+    const grid = document.getElementById('quick-foods-grid');
+    
+    if (this.quickFoods.length === 0) {
+        grid.innerHTML = '<p class="empty-message">No quick foods saved yet. Add common snacks and foods you eat regularly!</p>';
+        return;
+    }
+
+    grid.innerHTML = this.quickFoods.map(food => `
+        <div class="quick-food-card">
+            <div class="quick-food-header">
+                <h3 class="quick-food-name">${this.escapeHtml(food.name)}</h3>
+            </div>
+            <div class="quick-food-nutrition">
+                <div class="quick-food-stat">
+                    <span class="stat-value">${Math.round(food.calories)}</span>
+                    <span class="stat-label">cal</span>
+                </div>
+                <div class="quick-food-stat">
+                    <span class="stat-value">${food.protein.toFixed(1)}g</span>
+                    <span class="stat-label">protein</span>
+                </div>
+                <div class="quick-food-stat">
+                    <span class="stat-value">${food.carbs.toFixed(1)}g</span>
+                    <span class="stat-label">carbs</span>
+                </div>
+                <div class="quick-food-stat">
+                    <span class="stat-value">${food.fat.toFixed(1)}g</span>
+                    <span class="stat-label">fat</span>
+                </div>
+            </div>
+            <div class="quick-food-actions">
+                <button class="btn btn-primary" onclick="recipeManager.addQuickFoodToDay('${food.id}')" style="flex: 1;">
+                    ➕ Add to Today
+                </button>
+                <button class="btn btn-secondary" onclick="recipeManager.openQuickFoodModal(recipeManager.quickFoods.find(f => f.id === '${food.id}'))" style="padding: 10px;">
+                    ✏️
+                </button>
+                <button class="btn btn-danger" onclick="recipeManager.deleteQuickFood('${food.id}')" style="padding: 10px;">
+                    🗑️
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+    
 generateShoppingList() {
     const ingredients = {};
     
@@ -1171,11 +1357,13 @@ exportData() {
         recipes: this.recipes,
         mealPlan: this.mealPlan,
         dailyExtras: this.dailyExtras,
+        quickFoods: this.quickFoods, // ADD THIS LINE
         exportDate: new Date().toISOString()
     };
     
     document.getElementById('export-textarea').value = JSON.stringify(data, null, 2);
 }
+
 
 copyExportToClipboard() {
     const textarea = document.getElementById('export-textarea');
@@ -1188,6 +1376,7 @@ copyExportToClipboard() {
     document.execCommand('copy');
     alert('Copied to clipboard!');
 }
+
 
 importData() {
     const textarea = document.getElementById('import-textarea');
@@ -1202,10 +1391,12 @@ importData() {
             this.recipes = data.recipes;
             this.mealPlan = data.mealPlan || {};
             this.dailyExtras = data.dailyExtras || {};
+            this.quickFoods = data.quickFoods || []; // ADD THIS LINE
             this.migrateData();
             this.saveData('recipes', this.recipes);
             this.saveData('mealPlan', this.mealPlan);
             this.saveData('dailyExtras', this.dailyExtras);
+            this.saveData('quickFoods', this.quickFoods); // ADD THIS LINE
             this.renderRecipes();
             this.updateCollectionFilter();
             this.renderMealPlan();
