@@ -996,3 +996,79 @@ main {
         grid-template-columns: 1fr;
     }
 }
+
+/* Quick Foods View */
+.quick-foods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.quick-food-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.quick-food-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.quick-food-header {
+    margin-bottom: 16px;
+}
+
+.quick-food-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.quick-food-nutrition {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.quick-food-stat {
+    text-align: center;
+}
+
+.quick-food-stat .stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 4px;
+}
+
+.quick-food-stat .stat-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-food-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .quick-foods-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-food-nutrition {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
