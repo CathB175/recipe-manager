@@ -920,3 +920,79 @@ main {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+/* Modern Nutrition Summary */
+.nutrition-summary-modern {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.nutrition-summary-header h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 24px;
+}
+
+.nutrition-macros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.macro-card {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e5e7eb;
+}
+
+.macro-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.macro-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.macro-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.macro-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.macro-progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 6px;
+}
+
+.macro-percent {
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .nutrition-macros-grid {
+        grid-template-columns: 1fr;
+    }
+}
