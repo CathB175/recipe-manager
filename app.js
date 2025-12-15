@@ -1414,4 +1414,13 @@ async importData() {
 }
     }
 // Initialize the app
-const recipeManager = new RecipeManager();
+// Initialize the app with error handling
+let recipeManager;
+try {
+    console.log('Starting RecipeManager...');
+    recipeManager = new RecipeManager();
+    console.log('RecipeManager started successfully!');
+} catch (error) {
+    console.error('Error starting RecipeManager:', error);
+    alert('Error starting app: ' + error.message);
+}
