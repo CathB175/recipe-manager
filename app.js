@@ -755,10 +755,10 @@ class RecipeManager {
                         <div class="nutrition-meal-stats">
                             ${nutrition.calories ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.calories}</div><div class="nutrition-stat-label">Calories</div></div>` : ''}
                             ${nutrition.protein ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.protein}g</div><div class="nutrition-stat-label">Protein</div></div>: ''}                           
-                            ${nutrition.carbs ?<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.carbs}g</div><div class="nutrition-stat-label">Carbs</div></div>: ''}                    
-                            ${nutrition.fat ?<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fat}g</div><div class="nutrition-stat-label">Fat</div></div>: ''}                         
-                            ${nutrition.fiber ?<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fiber}g</div><div class="nutrition-stat-label">Fiber</div></div>: ''}                           
-                            ${nutrition.sugar ?<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.sugar}g</div><div class="nutrition-stat-label">Sugar</div></div>: ''}                       
+                            ${nutrition.carbs ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.carbs}g</div><div class="nutrition-stat-label">Carbs</div></div>: ''}                    
+                            ${nutrition.fat ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fat}g</div><div class="nutrition-stat-label">Fat</div></div>: ''}                         
+                            ${nutrition.fiber ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.fiber}g</div><div class="nutrition-stat-label">Fiber</div></div>: ''}                           
+                            ${nutrition.sugar ? `<div class="nutrition-stat"><div class="nutrition-stat-value">${nutrition.sugar}g</div><div class="nutrition-stat-label">Sugar</div></div>: ''}                       
                             </div>                    
                             </div>               
                             : ''}
