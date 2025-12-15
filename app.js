@@ -140,8 +140,11 @@ class RecipeManager {
                 updated_at: new Date().toISOString()
             };
 
-            if (recipe.id && recipe.id.includes('-')) {
-                delete supabaseRecipe.id;
+            // Check if this is a new recipe (timestamp ID or no valid UUID)
+            const isValidUUID = recipe.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recipe.id);
+            
+            if (!isValidUUID) {
+                // New recipe - insert and let Supabase generate UUID
                 const { data, error } = await supabase
                     .from('recipes')
                     .insert([supabaseRecipe])
@@ -151,6 +154,7 @@ class RecipeManager {
                 if (error) throw error;
                 return data.id;
             } else {
+                // Existing recipe with valid UUID - update
                 const { error } = await supabase
                     .from('recipes')
                     .update(supabaseRecipe)
@@ -191,7 +195,11 @@ class RecipeManager {
                 sugar: food.sugar
             };
 
-            if (food.id && food.id.includes('-')) {
+            // Check if this is a new food (timestamp ID or no valid UUID)
+            const isValidUUID = food.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(food.id);
+            
+            if (!isValidUUID) {
+                // New food - insert and let Supabase generate UUID
                 const { data, error } = await supabase
                     .from('quick_foods')
                     .insert([supabaseFood])
@@ -201,6 +209,7 @@ class RecipeManager {
                 if (error) throw error;
                 return data.id;
             } else {
+                // Existing food with valid UUID - update
                 const { error } = await supabase
                     .from('quick_foods')
                     .update(supabaseFood)
@@ -214,7 +223,6 @@ class RecipeManager {
             throw error;
         }
     }
-
     async deleteQuickFoodFromSupabase(id) {
         try {
             const { error } = await supabase
