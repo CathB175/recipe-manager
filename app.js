@@ -769,7 +769,7 @@ class RecipeManager {
                     <p>${this.escapeHtml(recipe.notes).replace(/\n/g, '<br>')}</p>
                 </div>
             ` : ''}
-        `;
+        ;
 
         document.getElementById('recipe-detail-modal').classList.add('active');
     } catch (e) {
