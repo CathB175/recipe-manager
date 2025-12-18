@@ -54,15 +54,28 @@ class RecipeManager {
         }
     }
 
-    async loadRecipesFromSupabase() {
+   async loadRecipesFromSupabase() {
         try {
             this.isLoading = true;
+            console.log('Attempting to load recipes from Supabase...');
+            
             const { data, error } = await supabase
                 .from('recipes')
                 .select('*')
                 .order('name');
             
-            if (error) throw error;
+            console.log('Supabase response:', { data, error });
+            
+            if (error) {
+                console.error('Supabase error details:', error);
+                throw error;
+            }
+            
+            if (!data) {
+                console.warn('No data returned from Supabase');
+                this.recipes = [];
+                return;
+            }
             
             this.recipes = data.map(recipe => ({
                 id: recipe.id,
@@ -87,15 +100,17 @@ class RecipeManager {
                 }
             }));
             
-            console.log('Loaded', this.recipes.length, 'recipes from Supabase');
+            console.log('Successfully loaded', this.recipes.length, 'recipes from Supabase');
         } catch (error) {
-            console.error('Error loading recipes:', error);
-            alert('Error loading recipes from cloud. Please refresh the page.');
+            console.error('Full error loading recipes:', error);
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            alert('Error loading recipes from cloud: ' + error.message + '. Please check the console for details.');
         } finally {
             this.isLoading = false;
         }
     }
-
     async loadQuickFoodsFromSupabase() {
         try {
             const { data, error } = await supabase
