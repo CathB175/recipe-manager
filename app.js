@@ -974,8 +974,229 @@ class RecipeManager {
         document.getElementById('recipe-detail-modal').classList.remove('active');
     }
 
-    printRecipeCard() {
-        window.print();
+   printRecipeCard() {
+        // Get current recipe ID from the modal
+        const modal = document.getElementById('recipe-detail-modal');
+        if (!modal || !modal.classList.contains('active')) return;
+        
+        // Find which recipe is currently displayed
+        const titleElement = modal.querySelector('.recipe-detail-title');
+        if (!titleElement) return;
+        
+        const recipeName = titleElement.textContent;
+        const recipe = this.recipes.find(r => r.name === recipeName);
+        if (!recipe) return;
+        
+        // Get current scale from active button
+        const activeScaleBtn = modal.querySelector('.recipe-scale-btn.active');
+        const scale = activeScaleBtn ? parseFloat(activeScaleBtn.textContent.replace('×', '')) : 1;
+        
+        this.openPrintWindow(recipe, scale);
+    }
+
+    openPrintWindow(recipe, scale) {
+        const self = this;
+        
+        // Function to scale ingredients
+        const scaleIngredient = function(ingredient) {
+            if (scale === 1) return ingredient;
+            return ingredient.replace(/(\d+\.?\d*)/g, function(match) {
+                const num = parseFloat(match);
+                const scaled = num * scale;
+                return parseFloat(scaled.toFixed(2)).toString();
+            });
+        };
+        
+        const collections = recipe.collections || [];
+        const ingredients = recipe.ingredients || [];
+        const steps = recipe.steps || [];
+        const nutrition = recipe.nutrition || {};
+        
+        // Create print HTML
+        const printHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Print: ${recipe.name}</title>
+    <style>
+        @page {
+            size: A5 portrait;
+            margin: 10mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+            color: #000;
+            background: white;
+        }
+        
+        .recipe-card {
+            width: 100%;
+            max-width: 128mm;
+        }
+        
+        h1 {
+            font-size: 18pt;
+            margin-bottom: 4pt;
+            color: #000;
+        }
+        
+        .meta {
+            font-size: 8pt;
+            margin-bottom: 6pt;
+            padding-bottom: 4pt;
+            border-bottom: 1pt solid #000;
+        }
+        
+        .meta span {
+            margin-right: 10pt;
+        }
+        
+        .collections {
+            margin-bottom: 8pt;
+        }
+        
+        .tag {
+            display: inline-block;
+            font-size: 7pt;
+            padding: 2pt 4pt;
+            border: 0.5pt solid #000;
+            border-radius: 2pt;
+            background: #f0f0f0;
+            margin-right: 3pt;
+            margin-bottom: 2pt;
+        }
+        
+        .section {
+            margin-bottom: 8pt;
+        }
+        
+        h2 {
+            font-size: 11pt;
+            margin-bottom: 3pt;
+            margin-top: 6pt;
+            padding-bottom: 2pt;
+            border-bottom: 0.5pt solid #666;
+        }
+        
+        ul, ol {
+            margin-left: 12pt;
+            padding: 0;
+        }
+        
+        li {
+            margin-bottom: 2pt;
+            font-size: 8.5pt;
+        }
+        
+        .nutrition {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3pt;
+            margin-top: 3pt;
+        }
+        
+        .nutrition-item {
+            text-align: center;
+            border: 0.5pt solid #666;
+            padding: 3pt;
+            border-radius: 2pt;
+        }
+        
+        .nutrition-value {
+            font-size: 9pt;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .nutrition-label {
+            font-size: 6pt;
+            display: block;
+        }
+        
+        .notes {
+            font-size: 8pt;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="recipe-card">
+        <h1>${self.escapeHtml(recipe.name)}</h1>
+        
+        <div class="meta">
+            <span>🍽️ ${Math.round((recipe.servings || 0) * scale)} servings</span>
+            <span>⏱️ Prep: ${recipe.prepTime || 0} min</span>
+            <span>🔥 Cook: ${recipe.cookTime || 0} min</span>
+            ${recipe.source ? '<span>📖 ' + self.escapeHtml(recipe.source) + '</span>' : ''}
+            ${scale !== 1 ? '<span style="font-weight: bold;">Scaled: ×' + scale + '</span>' : ''}
+        </div>
+        
+        ${collections.length > 0 ? '<div class="collections">' + 
+            collections.map(c => '<span class="tag">' + self.escapeHtml(c) + '</span>').join('') + 
+        '</div>' : ''}
+        
+        <div class="section">
+            <h2>Ingredients${scale !== 1 ? ' (scaled ×' + scale + ')' : ''}</h2>
+            <ul>
+                ${ingredients.map(i => '<li>' + self.escapeHtml(scaleIngredient(i)) + '</li>').join('')}
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Instructions</h2>
+            <ol>
+                ${steps.map(s => '<li>' + self.escapeHtml(s) + '</li>').join('')}
+            </ol>
+        </div>
+        
+        ${nutrition.calories || nutrition.protein || nutrition.carbs || nutrition.fat ? `
+        <div class="section">
+            <h2>Nutrition (per serving)</h2>
+            <div class="nutrition">
+                ${nutrition.calories ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.calories + '</span><span class="nutrition-label">Calories</span></div>' : ''}
+                ${nutrition.protein ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.protein + 'g</span><span class="nutrition-label">Protein</span></div>' : ''}
+                ${nutrition.carbs ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.carbs + 'g</span><span class="nutrition-label">Carbs</span></div>' : ''}
+                ${nutrition.fat ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.fat + 'g</span><span class="nutrition-label">Fat</span></div>' : ''}
+                ${nutrition.fiber ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.fiber + 'g</span><span class="nutrition-label">Fiber</span></div>' : ''}
+                ${nutrition.sugar ? '<div class="nutrition-item"><span class="nutrition-value">' + nutrition.sugar + 'g</span><span class="nutrition-label">Sugar</span></div>' : ''}
+            </div>
+        </div>
+        ` : ''}
+        
+        ${recipe.notes ? '<div class="section"><h2>Notes</h2><div class="notes">' + self.escapeHtml(recipe.notes).replace(/\n/g, '<br>') + '</div></div>' : ''}
+    </div>
+    
+    <script>
+        window.onload = function() {
+            window.print();
+        };
+        
+        window.onafterprint = function() {
+            window.close();
+        };
+    </script>
+</body>
+</html>`;
+        
+        // Open new window and write content
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(printHTML);
+        printWindow.document.close();
     }
     
     addToMealPlan(recipeId) {
