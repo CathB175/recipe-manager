@@ -786,6 +786,7 @@ class RecipeManager {
             this.renderRecipes();
             this.updateCollectionFilter();
             this.renderMealPlan();
+            this.renderDashboard(); // ADD THIS LINE
             this.closeRecipeModal();
             
             alert('Recipe saved to cloud!');
