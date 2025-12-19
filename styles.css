@@ -1271,165 +1271,143 @@ main {
 @media print {
     /* Set page size to A5 */
     @page {
-        size: A5 portrait;
-        margin: 0;
+        size: 148mm 210mm; /* A5 dimensions explicitly */
+        margin: 10mm;
     }
     
-    /* Hide everything */
-    body > *,
-    .modal,
-    .modal-content > * {
-        display: none !important;
+    /* Hide everything first */
+    * {
+        visibility: hidden;
+        overflow: hidden;
     }
     
-    /* Only show the recipe print card */
-    body,
-    .modal,
-    .modal-content,
-    #recipe-detail-modal,
-    #recipe-detail-content,
+    /* Show only the recipe card */
     .recipe-print-card,
     .recipe-print-card * {
-        display: block !important;
-        visibility: visible !important;
+        visibility: visible;
     }
     
-    /* Reset body and modal styles for print */
+    /* Reset body */
     body {
-        background: white;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .modal {
-        position: static;
-        background: none;
-    }
-    
-    .modal-content {
-        position: static;
         margin: 0;
         padding: 0;
-        max-width: none;
-        max-height: none;
-        border-radius: 0;
-        box-shadow: none;
-        overflow: visible;
     }
     
+    /* Position the card */
     .recipe-print-card {
         position: absolute;
         left: 0;
         top: 0;
-        width: 148mm;
-        height: 210mm;
-        padding: 10mm;
-        margin: 0;
-        background: white;
-        box-sizing: border-box;
-        overflow: hidden;
+        width: 100%;
+        height: auto;
+        max-width: 128mm; /* A5 width minus margins */
     }
     
-    /* Hide unwanted elements */
+    /* Hide elements we don't want */
     .recipe-detail-actions,
     .recipe-scale-controls,
-    .close {
+    .close,
+    .recipe-detail-image {
         display: none !important;
+        visibility: hidden !important;
     }
     
-    /* Style the content */
+    /* Header styling */
+    .recipe-print-card .recipe-detail-header {
+        margin-bottom: 8pt;
+    }
+    
     .recipe-print-card .recipe-detail-title {
-        font-size: 20pt;
-        margin-bottom: 6pt;
+        font-size: 18pt;
+        font-weight: bold;
+        margin-bottom: 4pt;
         color: #000;
-        line-height: 1.2;
+        line-height: 1.1;
     }
     
     .recipe-print-card .recipe-detail-meta {
-        font-size: 9pt;
-        margin-bottom: 10pt;
-        border-bottom: 1.5pt solid #333;
-        padding-bottom: 6pt;
+        font-size: 8pt;
+        margin-bottom: 6pt;
+        border-bottom: 1pt solid #000;
+        padding-bottom: 4pt;
     }
     
     .recipe-print-card .recipe-detail-meta span {
-        display: inline-block;
         margin-right: 8pt;
     }
     
+    /* Collections */
     .recipe-print-card .recipe-card-collections {
-        margin-bottom: 10pt;
+        margin-bottom: 8pt;
     }
     
     .recipe-print-card .collection-tag {
-        font-size: 8pt;
-        padding: 2pt 6pt;
-        border: 1pt solid #333;
-        border-radius: 3pt;
+        font-size: 7pt;
+        padding: 2pt 4pt;
+        border: 0.5pt solid #000;
+        border-radius: 2pt;
         background: #f0f0f0;
-        color: #333;
-        display: inline-block;
-        margin-right: 4pt;
-        margin-bottom: 4pt;
+        color: #000;
+        margin-right: 3pt;
     }
     
-    .recipe-print-card .recipe-detail-image {
-        display: none; /* Hide image to save space on A5 */
-    }
-    
+    /* Sections */
     .recipe-print-card .recipe-detail-section {
-        margin-bottom: 10pt;
+        margin-bottom: 8pt;
         page-break-inside: avoid;
     }
     
     .recipe-print-card .recipe-detail-section h3 {
-        font-size: 12pt;
+        font-size: 11pt;
         font-weight: bold;
-        margin-bottom: 4pt;
+        margin-bottom: 3pt;
+        margin-top: 6pt;
         color: #000;
-        border-bottom: 1pt solid #999;
-        padding-bottom: 3pt;
+        border-bottom: 0.5pt solid #666;
+        padding-bottom: 2pt;
     }
     
+    /* Lists */
     .recipe-print-card .recipe-detail-section ul,
     .recipe-print-card .recipe-detail-section ol {
-        font-size: 9pt;
-        line-height: 1.3;
-        margin-left: 12pt;
-        padding-left: 0;
+        font-size: 8.5pt;
+        line-height: 1.25;
+        margin: 0;
+        padding-left: 12pt;
     }
     
     .recipe-print-card .recipe-detail-section li {
-        margin-bottom: 3pt;
+        margin-bottom: 2pt;
     }
     
+    /* Nutrition */
     .recipe-print-card .nutrition-meal-stats {
-        display: grid !important;
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 4pt;
-        margin-top: 4pt;
+        gap: 3pt;
+        margin-top: 3pt;
     }
     
     .recipe-print-card .nutrition-stat {
         text-align: center;
-        border: 1pt solid #999;
-        padding: 3pt;
-        border-radius: 3pt;
+        border: 0.5pt solid #666;
+        padding: 2pt;
+        border-radius: 2pt;
     }
     
     .recipe-print-card .nutrition-stat-value {
-        font-size: 10pt;
+        font-size: 9pt;
         font-weight: bold;
-        display: block;
     }
     
     .recipe-print-card .nutrition-stat-label {
-        font-size: 7pt;
-        display: block;
+        font-size: 6pt;
     }
     
+    /* Notes */
     .recipe-print-card p {
-        font-size: 9pt;
-        line-height: 1.3;
+        font-size: 8pt;
+        line-height: 1.2;
+        margin: 0;
     }
 }
