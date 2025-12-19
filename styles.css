@@ -1226,3 +1226,43 @@ main {
         grid-template-columns: 1fr;
     }
 }
+
+/* Recipe Scaling Controls */
+.recipe-scale-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.recipe-scale-label {
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+}
+
+.recipe-scale-btn {
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+}
+
+.recipe-scale-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.recipe-scale-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
