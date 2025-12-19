@@ -835,11 +835,7 @@ class RecipeManager {
             return matchesSearch && matchesCollection;
         });
 
-            const matchesCollection = !collectionFilter || 
-                collections.includes(collectionFilter);
-            
-            return matchesSearch && matchesCollection;
-        });
+          
 
         const grid = document.getElementById('recipes-grid');
         
