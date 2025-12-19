@@ -1266,3 +1266,120 @@ main {
     border-color: #667eea;
     color: white;
 }
+/* Print Recipe Card (A5 Size) */
+@media print {
+    /* Hide everything except the recipe card */
+    body * {
+        visibility: hidden;
+    }
+    
+    .recipe-print-card,
+    .recipe-print-card * {
+        visibility: visible;
+    }
+    
+    .recipe-print-card {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 148mm;  /* A5 width */
+        height: 210mm; /* A5 height */
+        padding: 10mm;
+        margin: 0;
+        background: white;
+        box-sizing: border-box;
+    }
+    
+    /* Hide unwanted elements in print */
+    .recipe-detail-actions,
+    .recipe-scale-controls,
+    .modal .close {
+        display: none !important;
+    }
+    
+    /* Adjust fonts for print */
+    .recipe-print-card .recipe-detail-title {
+        font-size: 24pt;
+        margin-bottom: 8pt;
+        color: #000;
+    }
+    
+    .recipe-print-card .recipe-detail-meta {
+        font-size: 10pt;
+        margin-bottom: 12pt;
+        border-bottom: 2pt solid #333;
+        padding-bottom: 8pt;
+    }
+    
+    .recipe-print-card .recipe-detail-section {
+        margin-bottom: 12pt;
+        page-break-inside: avoid;
+    }
+    
+    .recipe-print-card .recipe-detail-section h3 {
+        font-size: 14pt;
+        margin-bottom: 6pt;
+        color: #000;
+        border-bottom: 1pt solid #ccc;
+        padding-bottom: 4pt;
+    }
+    
+    .recipe-print-card .recipe-detail-section ul,
+    .recipe-print-card .recipe-detail-section ol {
+        font-size: 10pt;
+        line-height: 1.4;
+    }
+    
+    .recipe-print-card .recipe-detail-section li {
+        margin-bottom: 4pt;
+    }
+    
+    .recipe-print-card .recipe-card-collections {
+        margin-bottom: 8pt;
+    }
+    
+    .recipe-print-card .collection-tag {
+        font-size: 8pt;
+        padding: 2pt 6pt;
+        border: 1pt solid #333;
+        border-radius: 4pt;
+        background: #f0f0f0;
+        color: #333;
+    }
+    
+    .recipe-print-card .recipe-detail-image {
+        max-height: 60mm;
+        width: auto;
+        margin-bottom: 8pt;
+        border-radius: 6pt;
+    }
+    
+    .recipe-print-card .nutrition-meal-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6pt;
+        margin-top: 6pt;
+    }
+    
+    .recipe-print-card .nutrition-stat {
+        text-align: center;
+        border: 1pt solid #ccc;
+        padding: 4pt;
+        border-radius: 4pt;
+    }
+    
+    .recipe-print-card .nutrition-stat-value {
+        font-size: 12pt;
+        font-weight: bold;
+    }
+    
+    .recipe-print-card .nutrition-stat-label {
+        font-size: 8pt;
+    }
+    
+    /* Set page size to A5 */
+    @page {
+        size: A5;
+        margin: 0;
+    }
+}
