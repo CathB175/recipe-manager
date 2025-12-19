@@ -932,7 +932,8 @@ class RecipeManager {
             html += '<button class="recipe-scale-btn ' + (scale === 3 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 3)">×3</button>';
             html += '</div>';
 
-            html += '<div class="recipe-detail-actions">';
+           html += '<div class="recipe-detail-actions">';
+            html += '<button class="btn btn-primary" onclick="recipeManager.printRecipeCard()">🖨️ Print Card</button>';
             html += '<button class="btn btn-primary" onclick="recipeManager.addToMealPlan(\'' + recipe.id + '\')">📅 Add to Meal Plan</button>';
             html += '<button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === \'' + recipe.id + '\'))">✏️ Edit Recipe</button>';
             html += '<button class="btn btn-danger" onclick="recipeManager.deleteRecipe(\'' + recipe.id + '\')">🗑️ Delete</button>';
@@ -973,6 +974,10 @@ class RecipeManager {
         document.getElementById('recipe-detail-modal').classList.remove('active');
     }
 
+    printRecipeCard() {
+        window.print();
+    }
+    
     addToMealPlan(recipeId) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1229,7 +1234,7 @@ class RecipeManager {
         });
         html += '<button class="add-extra-btn" onclick="recipeManager.showAddExtraModal()">+ Add Snack/Extra</button></div>';
 
-        content.innerHTML = html;
+        content.innerHTML = '<div class="recipe-print-card">' + html + '</div>';
     }
 
     showNutritionGoalsModal() {
