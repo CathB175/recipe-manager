@@ -358,7 +358,7 @@ class RecipeManager {
         });
     }
 
-    switchView(view) {
+   switchView(view) {
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
         });
@@ -369,10 +369,10 @@ class RecipeManager {
         document.querySelector('[data-view="' + view + '"]').classList.add('active');
         document.getElementById(view + '-view').classList.add('active');
         this.currentView = view;
-        
-        if (view === 'dashboard') {  // ADD THIS
+
+        if (view === 'dashboard') {
             this.renderDashboard();
-        if (view === 'shopping-list') {
+        } else if (view === 'shopping-list') {
             this.renderShoppingList();
         } else if (view === 'import-export') {
             this.addClearAllButton();
