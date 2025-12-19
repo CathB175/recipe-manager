@@ -15,7 +15,7 @@ class RecipeManager {
         this.recipes = [];
         this.quickFoods = [];
         this.shoppingList = [];
-        this.currentView = 'recipes';
+        this.currentView = 'dashboard';
         this.editingRecipeId = null;
         this.editingQuickFoodId = null;
         this.mealPlanDays = 7;
@@ -34,6 +34,7 @@ class RecipeManager {
         this.cleanOldMealPlan();
         this.renderMealPlan();
         this.setupNutritionDatePicker();
+        this.renderDashboard(); 
     }
 
     loadLocal(key) {
@@ -270,6 +271,14 @@ class RecipeManager {
             this.openRecipeModal();
         });
 
+        document.getElementById('dashboard-add-recipe').addEventListener('click', () => {
+            this.openRecipeModal();
+        });
+
+        document.getElementById('dashboard-search').addEventListener('input', () => {
+            this.renderDashboard();
+        });
+        
         document.querySelector('#recipe-modal .close').addEventListener('click', () => {
             this.closeRecipeModal();
         });
@@ -360,7 +369,9 @@ class RecipeManager {
         document.querySelector('[data-view="' + view + '"]').classList.add('active');
         document.getElementById(view + '-view').classList.add('active');
         this.currentView = view;
-
+        
+        if (view === 'dashboard') {  // ADD THIS
+            this.renderDashboard();
         if (view === 'shopping-list') {
             this.renderShoppingList();
         } else if (view === 'import-export') {
@@ -460,6 +471,214 @@ class RecipeManager {
             select.value = currentValue;
         }
     }
+        renderDashboard() {
+        this.renderDashboardMeals();
+        this.renderDashboardNutrition();
+        this.renderDashboardCollections();
+    }
+
+    renderDashboardMeals() {
+        const content = document.getElementById('dashboard-todays-meals');
+        const today = new Date().toISOString().split('T')[0];
+        const meals = this.mealPlan[today] || {};
+        
+        const mealOrder = ['breakfast', 'lunch', 'dinner'];
+        const mealLabels = {
+            breakfast: '🌅 Breakfast',
+            lunch: '☀️ Lunch',
+            dinner: '🌙 Dinner'
+        };
+        
+        const self = this;
+        let html = '';
+        
+        mealOrder.forEach(mealType => {
+            const recipeId = meals[mealType];
+            const recipe = recipeId ? self.recipes.find(r => r.id === recipeId) : null;
+            
+            html += '<div class="dashboard-meal-item">' +
+                '<div class="dashboard-meal-info">' +
+                '<div class="dashboard-meal-type">' + mealLabels[mealType] + '</div>';
+            
+            if (recipe) {
+                html += '<div class="dashboard-meal-name">' + self.escapeHtml(recipe.name) + '</div>';
+            } else {
+                html += '<div class="dashboard-meal-empty">Not planned yet</div>';
+            }
+            
+            html += '</div>';
+            
+            if (recipe) {
+                html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
+            } else {
+                html += '<button class="btn btn-primary" onclick="recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Plan</button>';
+            }
+            
+            html += '</div>';
+        });
+        
+        if (!meals.breakfast && !meals.lunch && !meals.dinner) {
+            html = '<div class="dashboard-empty">No meals planned for today. <a href="#" onclick="recipeManager.switchView(\'meal-plan\'); return false;" style="color: #667eea;">Plan your meals</a></div>';
+        }
+        
+        content.innerHTML = html;
+    }
+
+    renderDashboardNutrition() {
+        const content = document.getElementById('dashboard-nutrition');
+        const today = new Date().toISOString().split('T')[0];
+        const meals = this.mealPlan[today] || {};
+        const extras = this.dailyExtras[today] || [];
+        
+        let totals = {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0
+        };
+        
+        const self = this;
+        const mealOrder = ['breakfast', 'lunch', 'dinner'];
+        
+        mealOrder.forEach(mealType => {
+            const recipeId = meals[mealType];
+            if (!recipeId) return;
+            
+            const recipe = self.recipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            const nutrition = recipe.nutrition || {};
+            totals.calories += nutrition.calories || 0;
+            totals.protein += nutrition.protein || 0;
+            totals.carbs += nutrition.carbs || 0;
+            totals.fat += nutrition.fat || 0;
+        });
+        
+        extras.forEach(extra => {
+            totals.calories += extra.calories || 0;
+            totals.protein += extra.protein || 0;
+            totals.carbs += extra.carbs || 0;
+            totals.fat += extra.fat || 0;
+        });
+        
+        const goals = this.nutritionGoals;
+        
+        const calcPercent = function(actual, goal) {
+            if (!goal) return 0;
+            return Math.round((actual / goal) * 100);
+        };
+        
+        let html = '<div class="dashboard-nutrition-grid">';
+        html += '<div class="dashboard-nutrition-card">' +
+            '<div class="dashboard-nutrition-value">' + Math.round(totals.calories) + '</div>' +
+            '<div class="dashboard-nutrition-label">Calories</div>' +
+            '<div class="dashboard-nutrition-progress">' + calcPercent(totals.calories, goals.calories) + '% of goal</div>' +
+            '</div>';
+        
+        html += '<div class="dashboard-nutrition-card">' +
+            '<div class="dashboard-nutrition-value">' + totals.protein.toFixed(0) + 'g</div>' +
+            '<div class="dashboard-nutrition-label">Protein</div>' +
+            '<div class="dashboard-nutrition-progress">' + calcPercent(totals.protein, goals.protein) + '% of goal</div>' +
+            '</div>';
+        
+        html += '<div class="dashboard-nutrition-card">' +
+            '<div class="dashboard-nutrition-value">' + totals.carbs.toFixed(0) + 'g</div>' +
+            '<div class="dashboard-nutrition-label">Carbs</div>' +
+            '<div class="dashboard-nutrition-progress">' + calcPercent(totals.carbs, goals.carbs) + '% of goal</div>' +
+            '</div>';
+        
+        html += '<div class="dashboard-nutrition-card">' +
+            '<div class="dashboard-nutrition-value">' + totals.fat.toFixed(0) + 'g</div>' +
+            '<div class="dashboard-nutrition-label">Fat</div>' +
+            '<div class="dashboard-nutrition-progress">' + calcPercent(totals.fat, goals.fat) + '% of goal</div>' +
+            '</div>';
+        
+        html += '</div>';
+        
+        content.innerHTML = html;
+    }
+
+    renderDashboardCollections() {
+        const content = document.getElementById('dashboard-collections');
+        const searchTerm = document.getElementById('dashboard-search').value.toLowerCase();
+        
+        // Group recipes by collection
+        const collectionMap = {};
+        const unallocated = [];
+        
+        this.recipes.forEach(recipe => {
+            // Filter by search
+            if (searchTerm) {
+                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) ||
+                    (recipe.ingredients || []).some(i => i.toLowerCase().includes(searchTerm)) ||
+                    (recipe.keywords || []).some(k => k.toLowerCase().includes(searchTerm));
+                if (!matchesSearch) return;
+            }
+            
+            const collections = recipe.collections || [];
+            
+            if (collections.length === 0) {
+                unallocated.push(recipe);
+            } else {
+                collections.forEach(collection => {
+                    if (!collectionMap[collection]) {
+                        collectionMap[collection] = [];
+                    }
+                    collectionMap[collection].push(recipe);
+                });
+            }
+        });
+        
+        // Add unallocated to collection map
+        if (unallocated.length > 0) {
+            collectionMap['Not Allocated'] = unallocated;
+        }
+        
+        const self = this;
+        const sortedCollections = Object.keys(collectionMap).sort();
+        
+        if (sortedCollections.length === 0) {
+            content.innerHTML = '<div class="dashboard-empty">No recipes found. <a href="#" onclick="recipeManager.switchView(\'recipes\'); return false;" style="color: #667eea;">Add your first recipe</a></div>';
+            return;
+        }
+        
+        let html = '<div class="dashboard-collections-grid">';
+        
+        sortedCollections.forEach(collection => {
+            const recipes = collectionMap[collection];
+            html += '<div class="dashboard-collection-card" onclick="recipeManager.viewCollection(\'' + collection.replace(/'/g, "\\'") + '\')">' +
+                '<div class="dashboard-collection-name">' + self.escapeHtml(collection) + '</div>' +
+                '<div class="dashboard-collection-count">' + recipes.length + '</div>' +
+                '<div class="dashboard-collection-recipes">' + (recipes.length === 1 ? 'recipe' : 'recipes') + '</div>' +
+                '</div>';
+        });
+        
+        html += '</div>';
+        content.innerHTML = html;
+    }
+
+    viewCollection(collectionName) {
+        this.switchView('recipes');
+        
+        // Set the collection filter
+        const select = document.getElementById('collection-filter');
+        
+        // For "Not Allocated", we need to clear the filter and only show recipes with no collections
+        if (collectionName === 'Not Allocated') {
+            select.value = '';
+            document.getElementById('search-input').value = '';
+            
+            // We need a custom filter for this - let's add a temporary flag
+            this.showOnlyUnallocated = true;
+            this.renderRecipes();
+            this.showOnlyUnallocated = false;
+        } else {
+            select.value = collectionName;
+            document.getElementById('search-input').value = '';
+            this.renderRecipes();
+        }
+    }
+        
     // CHUNK 3 OF 4 - Add this below Chunk 2
     openRecipeModal(recipe) {
         this.closeRecipeDetailModal();
@@ -603,7 +822,18 @@ class RecipeManager {
             const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) ||
                 ingredients.some(i => i.toLowerCase().includes(searchTerm)) ||
                 keywords.some(k => k.toLowerCase().includes(searchTerm));
+
+            // Handle "Not Allocated" special case
+            if (this.showOnlyUnallocated) {
+                return matchesSearch && collections.length === 0;
+            }
             
+            const matchesCollection = !collectionFilter || 
+                collections.includes(collectionFilter);
+            
+            return matchesSearch && matchesCollection;
+        });
+
             const matchesCollection = !collectionFilter || 
                 collections.includes(collectionFilter);
             
