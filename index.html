@@ -15,7 +15,8 @@
         <header>
             <h1>Recipe Manager</h1>
             <nav>
-    <button class="nav-btn active" data-view="recipes">Recipes</button>
+    <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+    <button class="nav-btn" data-view="recipes">Recipes</button>
     <button class="nav-btn" data-view="meal-plan">Meal Plan</button>
     <button class="nav-btn" data-view="nutrition">Nutrition</button>
     <button class="nav-btn" data-view="quick-foods">Quick Foods</button>
@@ -25,8 +26,44 @@
         </header>
 
         <main>
-            <!-- Recipes View -->
-            <div id="recipes-view" class="view active">
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view active">
+        <div class="dashboard-container">
+            <!-- Today's Meals Section -->
+            <div class="dashboard-section">
+                <h2>Today's Meals</h2>
+                <div id="dashboard-todays-meals"></div>
+            </div>
+
+            <!-- Today's Nutrition Section -->
+            <div class="dashboard-section">
+                <h2>Today's Nutrition</h2>
+                <div id="dashboard-nutrition"></div>
+            </div>
+
+            <!-- Quick Actions Section -->
+            <div class="dashboard-section">
+                <h2>Quick Actions</h2>
+                <div class="dashboard-actions">
+                    <button class="btn btn-primary" id="dashboard-add-recipe">+ Add Recipe</button>
+                    <button class="btn btn-primary" onclick="recipeManager.switchView('meal-plan')">📅 Plan Meals</button>
+                    <button class="btn btn-primary" onclick="recipeManager.switchView('quick-foods')">⚡ Quick Foods</button>
+                </div>
+            </div>
+
+            <!-- Recipe Collections Section -->
+            <div class="dashboard-section">
+                <h2>Recipe Collections</h2>
+                <div class="search-filter" style="margin-bottom: 16px;">
+                    <input type="text" id="dashboard-search" placeholder="Search recipes...">
+                </div>
+                <div id="dashboard-collections"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipes View (update to remove 'active' class) -->
+    <div id="recipes-view" class="view">
                 <div class="view-header">
                     <button id="add-recipe-btn" class="btn btn-primary">+ Add Recipe</button>
                     <div class="search-filter">
@@ -221,6 +258,7 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
