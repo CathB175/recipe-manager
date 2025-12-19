@@ -875,7 +875,9 @@ class RecipeManager {
         }).join('');
     }
 
-    viewRecipe(id) {
+ viewRecipe(id, scale) {
+        scale = scale || 1; // Default scale is 1x
+        
         try {
             const recipe = this.recipes.find(r => r.id === id);
             if (!recipe) {
@@ -891,13 +893,26 @@ class RecipeManager {
             const self = this;
             const content = document.getElementById('recipe-detail-content');
             
+            // Function to scale ingredient amounts
+            const scaleIngredient = function(ingredient) {
+                if (scale === 1) return ingredient;
+                
+                // Try to find numbers in the ingredient and scale them
+                return ingredient.replace(/(\d+\.?\d*)/g, function(match) {
+                    const num = parseFloat(match);
+                    const scaled = num * scale;
+                    // Round to 2 decimal places and remove trailing zeros
+                    return parseFloat(scaled.toFixed(2)).toString();
+                });
+            };
+            
             let html = '<div class="recipe-detail-header">';
             if (recipe.image) {
                 html += '<img src="' + recipe.image + '" alt="' + self.escapeHtml(recipe.name) + '" class="recipe-detail-image" onerror="this.style.display=\'none\'">';
             }
             html += '<h2 class="recipe-detail-title">' + self.escapeHtml(recipe.name) + '</h2>';
             html += '<div class="recipe-detail-meta">';
-            html += '<span>🍽️ ' + (recipe.servings || 0) + ' servings</span>';
+            html += '<span>🍽️ ' + Math.round((recipe.servings || 0) * scale) + ' servings</span>';
             html += '<span>⏱️ Prep: ' + (recipe.prepTime || 0) + ' min</span>';
             html += '<span>🔥 Cook: ' + (recipe.cookTime || 0) + ' min</span>';
             if (recipe.source) {
@@ -908,14 +923,23 @@ class RecipeManager {
             html += collections.map(c => '<span class="collection-tag">' + self.escapeHtml(c) + '</span>').join('');
             html += '</div></div>';
 
+            // Scaling buttons
+            html += '<div class="recipe-scale-controls">';
+            html += '<span class="recipe-scale-label">Scale Recipe:</span>';
+            html += '<button class="recipe-scale-btn ' + (scale === 0.5 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 0.5)">×0.5</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 1 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 1)">×1</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 2 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 2)">×2</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 3 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 3)">×3</button>';
+            html += '</div>';
+
             html += '<div class="recipe-detail-actions">';
             html += '<button class="btn btn-primary" onclick="recipeManager.addToMealPlan(\'' + recipe.id + '\')">📅 Add to Meal Plan</button>';
             html += '<button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === \'' + recipe.id + '\'))">✏️ Edit Recipe</button>';
             html += '<button class="btn btn-danger" onclick="recipeManager.deleteRecipe(\'' + recipe.id + '\')">🗑️ Delete</button>';
             html += '</div>';
 
-            html += '<div class="recipe-detail-section"><h3>Ingredients</h3><ul>';
-            html += ingredients.map(i => '<li>' + self.escapeHtml(i) + '</li>').join('');
+            html += '<div class="recipe-detail-section"><h3>Ingredients' + (scale !== 1 ? ' (scaled ×' + scale + ')' : '') + '</h3><ul>';
+            html += ingredients.map(i => '<li>' + self.escapeHtml(scaleIngredient(i)) + '</li>').join('');
             html += '</ul></div>';
 
             html += '<div class="recipe-detail-section"><h3>Instructions</h3><ol>';
