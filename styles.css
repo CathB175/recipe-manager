@@ -1072,3 +1072,157 @@ main {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+/* Dashboard Styles */
+.dashboard-container {
+    display: grid;
+    gap: 24px;
+}
+
+.dashboard-section {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.dashboard-section h2 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* Today's Meals */
+.dashboard-meal-item {
+    background: #f9fafb;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-meal-info {
+    flex: 1;
+}
+
+.dashboard-meal-type {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #667eea;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dashboard-meal-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.dashboard-meal-empty {
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Today's Nutrition Summary */
+.dashboard-nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.dashboard-nutrition-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.dashboard-nutrition-value {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.dashboard-nutrition-label {
+    font-size: 12px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dashboard-nutrition-progress {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+/* Recipe Collections */
+.dashboard-collections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.dashboard-collection-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #e9ecef 100%);
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dashboard-collection-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.dashboard-collection-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.dashboard-collection-count {
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.dashboard-collection-recipes {
+    font-size: 12px;
+    color: #666;
+}
+
+.dashboard-empty {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .dashboard-nutrition-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .dashboard-collections-grid {
+        grid-template-columns: 1fr;
+    }
+}
