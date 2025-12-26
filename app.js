@@ -811,6 +811,58 @@ class RecipeManager {
         }
     }
 
+    async duplicateRecipe(id) {
+        const originalRecipe = this.recipes.find(r => r.id === id);
+        if (!originalRecipe) {
+            alert('Recipe not found');
+            return;
+        }
+
+        // Create a copy with "(Copy)" added to the name
+        const duplicatedRecipe = {
+            id: Date.now().toString() + '-temp',
+            name: originalRecipe.name + ' (Copy)',
+            servings: originalRecipe.servings,
+            prepTime: originalRecipe.prepTime,
+            cookTime: originalRecipe.cookTime,
+            source: originalRecipe.source,
+            image: originalRecipe.image,
+            collections: [...(originalRecipe.collections || [])],
+            keywords: [...(originalRecipe.keywords || [])],
+            ingredients: [...(originalRecipe.ingredients || [])],
+            steps: [...(originalRecipe.steps || [])],
+            notes: originalRecipe.notes,
+            nutrition: {
+                calories: originalRecipe.nutrition?.calories || 0,
+                protein: originalRecipe.nutrition?.protein || 0,
+                carbs: originalRecipe.nutrition?.carbs || 0,
+                fat: originalRecipe.nutrition?.fat || 0,
+                fiber: originalRecipe.nutrition?.fiber || 0,
+                sugar: originalRecipe.nutrition?.sugar || 0
+            }
+        };
+
+        try {
+            const newId = await this.saveRecipeToSupabase(duplicatedRecipe);
+            duplicatedRecipe.id = newId;
+            
+            this.recipes.push(duplicatedRecipe);
+            
+            this.renderRecipes();
+            this.updateCollectionFilter();
+            this.renderDashboard();
+            this.closeRecipeDetailModal();
+            
+            alert('Recipe duplicated! You can now edit "' + duplicatedRecipe.name + '"');
+            
+            // Optionally open the editor right away
+            this.openRecipeModal(duplicatedRecipe);
+        } catch (error) {
+            console.error('Error duplicating recipe:', error);
+            alert('Error duplicating recipe. Please try again.');
+        }
+    }
+    
     renderRecipes() {
         const searchTerm = document.getElementById('search-input').value.toLowerCase();
         const collectionFilter = document.getElementById('collection-filter').value;
@@ -932,8 +984,9 @@ class RecipeManager {
             html += '<button class="recipe-scale-btn ' + (scale === 3 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 3)">×3</button>';
             html += '</div>';
 
-           html += '<div class="recipe-detail-actions">';
+          html += '<div class="recipe-detail-actions">';
             html += '<button class="btn btn-primary" onclick="recipeManager.printRecipeCard()">🖨️ Print Card</button>';
+            html += '<button class="btn btn-primary" onclick="recipeManager.duplicateRecipe(\'' + recipe.id + '\')">📋 Duplicate</button>';
             html += '<button class="btn btn-primary" onclick="recipeManager.addToMealPlan(\'' + recipe.id + '\')">📅 Add to Meal Plan</button>';
             html += '<button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === \'' + recipe.id + '\'))">✏️ Edit Recipe</button>';
             html += '<button class="btn btn-danger" onclick="recipeManager.deleteRecipe(\'' + recipe.id + '\')">🗑️ Delete</button>';
