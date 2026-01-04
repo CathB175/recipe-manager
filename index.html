@@ -78,20 +78,26 @@
             </div>
 
             <!-- Meal Plan View -->
-            <div id="meal-plan-view" class="view">
-                <div class="view-header">
-                    <div class="meal-plan-controls">
-                        <label>
-                            <input type="radio" name="plan-days" value="7" checked> 7 Days
-                        </label>
-                        <label>
-                            <input type="radio" name="plan-days" value="14"> 14 Days
-                        </label>
-                        <button id="generate-shopping-list" class="btn btn-primary">Generate Shopping List</button>
-                    </div>
-                </div>
-                <div id="meal-plan-grid" class="meal-plan-grid"></div>
+<div id="meal-plan-view" class="view">
+    <div class="meal-plan-header">
+        <h1>Meal Planner</h1>
+        <div class="meal-plan-controls">
+            <div class="plan-days-selector">
+                <label>
+                    <input type="radio" name="plan-days" value="7" checked>
+                    <span>7 Days</span>
+                </label>
+                <label>
+                    <input type="radio" name="plan-days" value="14">
+                    <span>14 Days</span>
+                </label>
             </div>
+            <button class="btn btn-secondary" id="clear-week-btn">🗑️ Clear Week</button>
+            <button class="btn btn-primary" id="generate-shopping-list">📝 Shopping List</button>
+        </div>
+    </div>
+    <div id="meal-plan-grid"></div>
+</div>
 
             <!-- Nutrition View -->
             <div id="nutrition-view" class="view">
@@ -259,6 +265,7 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
