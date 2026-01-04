@@ -1308,7 +1308,7 @@ class RecipeManager {
         }
     }
     // CHUNK 4 OF 4 - Add this below Chunk 3 (FINAL CHUNK!)
-    renderMealPlan() {
+   renderMealPlan() {
         const grid = document.getElementById('meal-plan-grid');
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1331,25 +1331,108 @@ class RecipeManager {
             const isPast = date < today;
             const dayName = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
             
-            return '<div class="meal-day ' + (isPast ? 'past' : '') + '" data-date="' + dateStr + '">' +
-                '<div class="meal-day-header">' + dayName + '</div>' +
-                '<div class="meal-slots">' +
-                self.renderMealSlot(dateStr, 'breakfast', 'Breakfast') +
-                self.renderMealSlot(dateStr, 'lunch', 'Lunch') +
-                self.renderMealSlot(dateStr, 'dinner', 'Dinner') +
-                '</div></div>';
+            // Calculate nutrition for the day
+            const dayNutrition = self.calculateDayNutrition(dateStr);
+            const nutritionSummary = dayNutrition.calories > 0 ? 
+                `${Math.round(dayNutrition.calories)} cal • ${Math.round(dayNutrition.protein)}g protein` : 
+                'No meals planned';
+            
+            return `<div class="meal-day-card ${isPast ? 'past' : ''}" data-date="${dateStr}">
+                <div class="meal-day-header">
+                    <div class="meal-day-date">${dayName}</div>
+                    <div class="meal-day-nutrition-summary">${nutritionSummary}</div>
+                </div>
+                <div class="meal-day-body">
+                    <div class="meal-slots-modern">
+                        ${self.renderMealSlotModern(dateStr, 'breakfast', '🌅 Breakfast')}
+                        ${self.renderMealSlotModern(dateStr, 'lunch', '☀️ Lunch')}
+                        ${self.renderMealSlotModern(dateStr, 'dinner', '🌙 Dinner')}
+                    </div>
+                </div>
+            </div>`;
         }).join('');
+    }
 
-        grid.querySelectorAll('select').forEach(select => {
-            select.addEventListener('change', (e) => {
-                const parts = e.target.dataset.meal.split('|');
-                const date = parts[0];
-                const mealType = parts[1];
-                if (!this.mealPlan[date]) this.mealPlan[date] = {};
-                this.mealPlan[date][mealType] = e.target.value;
-                this.saveLocal('mealPlan', this.mealPlan);
-            });
+    calculateDayNutrition(dateStr) {
+        const meals = this.mealPlan[dateStr] || {};
+        const extras = this.dailyExtras[dateStr] || [];
+        
+        let totals = {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0
+        };
+        
+        const self = this;
+        ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
+            const meal = meals[mealType];
+            if (!meal) return;
+            
+            if (meal.type === 'recipe') {
+                const recipe = self.recipes.find(r => r.id === meal.recipeId);
+                if (recipe && recipe.nutrition) {
+                    totals.calories += recipe.nutrition.calories || 0;
+                    totals.protein += recipe.nutrition.protein || 0;
+                    totals.carbs += recipe.nutrition.carbs || 0;
+                    totals.fat += recipe.nutrition.fat || 0;
+                }
+            }
         });
+        
+        extras.forEach(extra => {
+            totals.calories += extra.calories || 0;
+            totals.protein += extra.protein || 0;
+        });
+        
+        return totals;
+    }
+
+    renderMealSlotModern(date, mealType, label) {
+        const meals = this.mealPlan[date] || {};
+        const meal = meals[mealType];
+        const self = this;
+        
+        let contentHTML = '';
+        
+        if (!meal) {
+            contentHTML = `<div class="meal-slot-empty" onclick="recipeManager.openMealSelector('${date}', '${mealType}')">
+                + Click to add ${mealType}
+            </div>`;
+        } else if (meal.type === 'recipe') {
+            const recipe = self.recipes.find(r => r.id === meal.recipeId);
+            if (recipe) {
+                const nutrition = recipe.nutrition || {};
+                contentHTML = `<div class="meal-slot-recipe">
+                    ${recipe.image ? `<img src="${recipe.image}" class="meal-slot-recipe-image" onerror="this.style.display='none'">` : ''}
+                    <div class="meal-slot-recipe-info">
+                        <div class="meal-slot-recipe-name">${self.escapeHtml(recipe.name)}</div>
+                        <div class="meal-slot-recipe-meta">${recipe.servings} servings • ${(recipe.prepTime || 0) + (recipe.cookTime || 0)} min</div>
+                        <div class="meal-slot-recipe-nutrition">
+                            ${nutrition.calories ? `<span>${Math.round(nutrition.calories)} cal</span>` : ''}
+                            ${nutrition.protein ? `<span>${nutrition.protein}g protein</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                contentHTML = `<div class="meal-slot-custom-text">Recipe not found</div>`;
+            }
+        } else if (meal.type === 'custom') {
+            contentHTML = `<div class="meal-slot-custom-text">${self.escapeHtml(meal.text)}</div>`;
+        }
+        
+        return `<div class="meal-slot-card ${mealType}">
+            <div class="meal-slot-header">
+                <div class="meal-slot-label ${mealType}">${label}</div>
+                <div class="meal-slot-actions">
+                    ${meal ? `<button class="meal-slot-icon-btn" onclick="recipeManager.clearMealSlot('${date}', '${mealType}')" title="Clear">✕</button>` : ''}
+                    <button class="meal-slot-icon-btn" onclick="recipeManager.openMealSelector('${date}', '${mealType}')" title="Change">✏️</button>
+                </div>
+            </div>
+            <div class="meal-slot-content">
+                ${contentHTML}
+            </div>
+        </div>`;
     }
 
     renderMealSlot(date, mealType, label) {
