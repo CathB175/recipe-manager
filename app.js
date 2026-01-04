@@ -461,17 +461,7 @@ class RecipeManager {
         this.saveLocal('dailyExtras', this.dailyExtras);
     }
         
-        Object.keys(this.dailyExtras).forEach(dateStr => {
-            const planDate = new Date(dateStr);
-            if (planDate < today) {
-                delete this.dailyExtras[dateStr];
-            }
-        });
-        
-        this.saveLocal('mealPlan', this.mealPlan);
-        this.saveLocal('dailyExtras', this.dailyExtras);
-    }
-
+      
     updateCollectionFilter() {
         const select = document.getElementById('collection-filter');
         const collections = new Set();
