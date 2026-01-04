@@ -434,16 +434,31 @@ class RecipeManager {
         }
     }
 
-    cleanOldMealPlan() {
+   cleanOldMealPlan() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        // Keep meals from 2 weeks ago onwards
+        const twoWeeksAgo = new Date(today);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        
         Object.keys(this.mealPlan).forEach(dateStr => {
             const planDate = new Date(dateStr);
-            if (planDate < today) {
+            if (planDate < twoWeeksAgo) {
                 delete this.mealPlan[dateStr];
             }
         });
+        
+        Object.keys(this.dailyExtras).forEach(dateStr => {
+            const planDate = new Date(dateStr);
+            if (planDate < twoWeeksAgo) {
+                delete this.dailyExtras[dateStr];
+            }
+        });
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.saveLocal('dailyExtras', this.dailyExtras);
+    }
         
         Object.keys(this.dailyExtras).forEach(dateStr => {
             const planDate = new Date(dateStr);
@@ -1335,10 +1350,17 @@ class RecipeManager {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        // Find the Monday of the current week (0 = Sunday, 1 = Monday, etc.)
+        const currentDay = today.getDay();
+        const daysFromMonday = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
+        
+        const thisMonday = new Date(today);
+        thisMonday.setDate(today.getDate() + daysFromMonday);
+        
         const days = [];
         for (let i = 0; i < this.mealPlanDays; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
+            const date = new Date(thisMonday);
+            date.setDate(thisMonday.getDate() + i);
             days.push(date);
         }
 
