@@ -1435,6 +1435,181 @@ class RecipeManager {
         </div>`;
     }
 
+    openMealSelector(date, mealType) {
+        const self = this;
+        const currentMeal = (this.mealPlan[date] && this.mealPlan[date][mealType]) || null;
+        
+        // Create modal HTML
+        const modalHTML = `
+            <div id="meal-select-modal" class="meal-select-modal active">
+                <div class="meal-select-content">
+                    <div class="meal-select-header">
+                        <h3>Select ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}</h3>
+                        <p style="color: #666; font-size: 14px;">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    
+                    <div class="meal-select-tabs">
+                        <button class="meal-select-tab active" data-tab="recipes">From Recipes</button>
+                        <button class="meal-select-tab" data-tab="custom">Custom Text</button>
+                    </div>
+                    
+                    <div id="meal-select-tab-recipes" class="meal-select-tab-content">
+                        <div class="meal-select-search">
+                            <input type="text" id="meal-search-input" placeholder="Search recipes...">
+                        </div>
+                        <div id="meal-select-recipe-list" class="meal-select-list"></div>
+                    </div>
+                    
+                    <div id="meal-select-tab-custom" class="meal-select-tab-content" style="display: none;">
+                        <div class="meal-custom-input-section">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enter meal description:</label>
+                            <input type="text" id="meal-custom-text" placeholder="e.g., Eating out, Leftovers, Takeaway..." value="${currentMeal && currentMeal.type === 'custom' ? currentMeal.text : ''}">
+                            <div class="meal-custom-input-actions">
+                                <button class="btn btn-primary" onclick="recipeManager.saveCustomMeal('${date}', '${mealType}')">Save Custom Meal</button>
+                                <button class="btn btn-secondary" onclick="recipeManager.closeMealSelector()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('meal-select-modal');
+        if (existingModal) existingModal.remove();
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Setup tab switching
+        document.querySelectorAll('.meal-select-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.meal-select-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tabName = this.dataset.tab;
+                document.querySelectorAll('.meal-select-tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById('meal-select-tab-' + tabName).style.display = 'block';
+            });
+        });
+        
+        // Setup search
+        document.getElementById('meal-search-input').addEventListener('input', function() {
+            self.filterMealRecipes(this.value);
+        });
+        
+        // Close on background click
+        document.getElementById('meal-select-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                self.closeMealSelector();
+            }
+        });
+        
+        // Initial recipe list
+        this.currentMealDate = date;
+        this.currentMealType = mealType;
+        this.filterMealRecipes('');
+    }
+
+    filterMealRecipes(searchTerm) {
+        const list = document.getElementById('meal-select-recipe-list');
+        const self = this;
+        
+        const filtered = this.recipes.filter(recipe => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            return recipe.name.toLowerCase().includes(term) ||
+                   (recipe.ingredients || []).some(i => i.toLowerCase().includes(term)) ||
+                   (recipe.keywords || []).some(k => k.toLowerCase().includes(term));
+        });
+        
+        if (filtered.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No recipes found</p>';
+            return;
+        }
+        
+        list.innerHTML = filtered.map(recipe => {
+            const nutrition = recipe.nutrition || {};
+            return `<div class="meal-select-item" onclick="recipeManager.selectRecipeForMeal('${recipe.id}')">
+                <div>
+                    <div class="meal-select-item-name">${self.escapeHtml(recipe.name)}</div>
+                    <div class="meal-select-item-meta">
+                        ${recipe.servings} servings
+                        ${nutrition.calories ? ' • ' + Math.round(nutrition.calories) + ' cal' : ''}
+                        ${nutrition.protein ? ' • ' + nutrition.protein + 'g protein' : ''}
+                    </div>
+                </div>
+                <span>→</span>
+            </div>`;
+        }).join('');
+    }
+
+    selectRecipeForMeal(recipeId) {
+        const date = this.currentMealDate;
+        const mealType = this.currentMealType;
+        
+        if (!this.mealPlan[date]) {
+            this.mealPlan[date] = {};
+        }
+        
+        this.mealPlan[date][mealType] = {
+            type: 'recipe',
+            recipeId: recipeId
+        };
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
+
+    saveCustomMeal(date, mealType) {
+        const text = document.getElementById('meal-custom-text').value.trim();
+        
+        if (!text) {
+            alert('Please enter a meal description');
+            return;
+        }
+        
+        if (!this.mealPlan[date]) {
+            this.mealPlan[date] = {};
+        }
+        
+        this.mealPlan[date][mealType] = {
+            type: 'custom',
+            text: text
+        };
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
+
+    clearMealSlot(date, mealType) {
+        if (this.mealPlan[date] && this.mealPlan[date][mealType]) {
+            delete this.mealPlan[date][mealType];
+            
+            // Clean up empty date objects
+            if (Object.keys(this.mealPlan[date]).length === 0) {
+                delete this.mealPlan[date];
+            }
+            
+            this.saveLocal('mealPlan', this.mealPlan);
+            this.renderMealPlan();
+            this.renderDashboard();
+        }
+    }
+
+    closeMealSelector() {
+        const modal = document.getElementById('meal-select-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
     renderMealSlot(date, mealType, label) {
         const selectedRecipe = this.mealPlan[date] && this.mealPlan[date][mealType] ? this.mealPlan[date][mealType] : '';
         const self = this;
