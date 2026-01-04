@@ -442,17 +442,18 @@ class RecipeManager {
         const twoWeeksAgo = new Date(today);
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
         
-        Object.keys(this.mealPlan).forEach(dateStr => {
+        const self = this;
+        Object.keys(this.mealPlan).forEach(function(dateStr) {
             const planDate = new Date(dateStr);
             if (planDate < twoWeeksAgo) {
-                delete this.mealPlan[dateStr];
+                delete self.mealPlan[dateStr];
             }
         });
         
-        Object.keys(this.dailyExtras).forEach(dateStr => {
+        Object.keys(this.dailyExtras).forEach(function(dateStr) {
             const planDate = new Date(dateStr);
             if (planDate < twoWeeksAgo) {
-                delete this.dailyExtras[dateStr];
+                delete self.dailyExtras[dateStr];
             }
         });
         
