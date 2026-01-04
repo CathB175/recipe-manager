@@ -1267,4 +1267,366 @@ main {
     color: white;
 }
 
+/* Professional Meal Planner Styles */
+.meal-plan-header {
+    margin-bottom: 24px;
+}
 
+.meal-plan-header h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.meal-plan-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.plan-days-selector {
+    display: flex;
+    gap: 8px;
+    background: #f9fafb;
+    padding: 4px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.plan-days-selector label {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.plan-days-selector input[type="radio"] {
+    display: none;
+}
+
+.plan-days-selector input[type="radio"]:checked + span {
+    background: #667eea;
+    color: white;
+}
+
+#meal-plan-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Day Card */
+.meal-day-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.meal-day-card.past {
+    opacity: 0.6;
+}
+
+.meal-day-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meal-day-date {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.meal-day-nutrition-summary {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.meal-day-body {
+    padding: 16px 20px;
+}
+
+.meal-slots-modern {
+    display: grid;
+    gap: 12px;
+}
+
+/* Meal Slot Card */
+.meal-slot-card {
+    background: #f9fafb;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 14px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.meal-slot-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.meal-slot-card.breakfast {
+    border-left: 4px solid #f59e0b;
+}
+
+.meal-slot-card.lunch {
+    border-left: 4px solid #10b981;
+}
+
+.meal-slot-card.dinner {
+    border-left: 4px solid #3b82f6;
+}
+
+.meal-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.meal-slot-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+.meal-slot-label.breakfast { color: #f59e0b; }
+.meal-slot-label.lunch { color: #10b981; }
+.meal-slot-label.dinner { color: #3b82f6; }
+
+.meal-slot-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.meal-slot-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.meal-slot-icon-btn:hover {
+    opacity: 1;
+}
+
+.meal-slot-content {
+    min-height: 60px;
+}
+
+.meal-slot-empty {
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px dashed #d0d0d0;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.meal-slot-empty:hover {
+    border-color: #667eea;
+    color: #667eea;
+    background: #f0f4ff;
+}
+
+.meal-slot-recipe {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.meal-slot-recipe-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #e0e0e0;
+}
+
+.meal-slot-recipe-info {
+    flex: 1;
+}
+
+.meal-slot-recipe-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.meal-slot-recipe-meta {
+    font-size: 12px;
+    color: #666;
+}
+
+.meal-slot-recipe-nutrition {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.meal-slot-custom-text {
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Meal Selection Modal */
+.meal-select-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.meal-select-modal.active {
+    display: flex;
+}
+
+.meal-select-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.meal-select-header {
+    margin-bottom: 20px;
+}
+
+.meal-select-header h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.meal-select-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 16px;
+}
+
+.meal-select-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.meal-select-tab.active {
+    border-bottom-color: #667eea;
+    color: #667eea;
+}
+
+.meal-select-search {
+    margin-bottom: 16px;
+}
+
+.meal-select-search input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.meal-select-list {
+    display: grid;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.meal-select-item {
+    padding: 12px;
+    background: #f9fafb;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meal-select-item:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.meal-select-item-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.meal-select-item-meta {
+    font-size: 12px;
+    color: #666;
+}
+
+.meal-custom-input-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.meal-custom-input-section input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.meal-custom-input-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .meal-plan-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .meal-slot-recipe {
+        flex-direction: column;
+        text-align: center;
+    }
+}
