@@ -559,18 +559,21 @@ class RecipeManager {
         const self = this;
         const mealOrder = ['breakfast', 'lunch', 'dinner'];
         
-        mealOrder.forEach(mealType => {
-            const recipeId = meals[mealType];
-            if (!recipeId) return;
+       mealOrder.forEach(mealType => {
+            const meal = meals[mealType];
+            if (!meal) return;
             
-            const recipe = self.recipes.find(r => r.id === recipeId);
-            if (!recipe) return;
-            
-            const nutrition = recipe.nutrition || {};
-            totals.calories += nutrition.calories || 0;
-            totals.protein += nutrition.protein || 0;
-            totals.carbs += nutrition.carbs || 0;
-            totals.fat += nutrition.fat || 0;
+            // Only count nutrition for recipe meals, not custom text
+            if (meal.type === 'recipe') {
+                const recipe = self.recipes.find(r => r.id === meal.recipeId);
+                if (!recipe) return;
+                
+                const nutrition = recipe.nutrition || {};
+                totals.calories += nutrition.calories || 0;
+                totals.protein += nutrition.protein || 0;
+                totals.carbs += nutrition.carbs || 0;
+                totals.fat += nutrition.fat || 0;
+            }
         });
         
         extras.forEach(extra => {
@@ -1689,28 +1692,37 @@ class RecipeManager {
         const mealData = [];
         
         const self = this;
-        mealOrder.forEach(mealType => {
-            const recipeId = meals[mealType];
-            if (!recipeId) return;
+       mealOrder.forEach(mealType => {
+            const meal = meals[mealType];
+            if (!meal) return;
             
-            const recipe = self.recipes.find(r => r.id === recipeId);
-            if (!recipe) return;
-            
-            const nutrition = recipe.nutrition || {};
-            mealData.push({
-                name: recipe.name,
-                type: mealType,
-                nutrition: nutrition
-            });
-            
-            totals.calories += nutrition.calories || 0;
-            totals.protein += nutrition.protein || 0;
-            totals.carbs += nutrition.carbs || 0;
-            totals.fat += nutrition.fat || 0;
-            totals.fiber += nutrition.fiber || 0;
-            totals.sugar += nutrition.sugar || 0;
+            if (meal.type === 'recipe') {
+                const recipe = self.recipes.find(r => r.id === meal.recipeId);
+                if (!recipe) return;
+                
+                const nutrition = recipe.nutrition || {};
+                mealData.push({
+                    name: recipe.name,
+                    type: mealType,
+                    nutrition: nutrition
+                });
+                
+                totals.calories += nutrition.calories || 0;
+                totals.protein += nutrition.protein || 0;
+                totals.carbs += nutrition.carbs || 0;
+                totals.fat += nutrition.fat || 0;
+                totals.fiber += nutrition.fiber || 0;
+                totals.sugar += nutrition.sugar || 0;
+            } else if (meal.type === 'custom') {
+                // Show custom meals in the list but with no nutrition
+                mealData.push({
+                    name: meal.text,
+                    type: mealType,
+                    nutrition: {}
+                });
+            }
         });
-
+          
         extras.forEach(extra => {
             totals.calories += extra.calories || 0;
             totals.protein += extra.protein || 0;
@@ -1794,7 +1806,11 @@ class RecipeManager {
             html += '</div>';
         }
 
-        html += '<div class="nutrition-extras"><h3>Snacks & Extras</h3>';
+       html += '<div class="nutrition-extras">' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
+            '<h3 style="margin: 0;">Snacks & Extras</h3>' +
+            '<button class="btn btn-secondary" onclick="recipeManager.switchView(\'quick-foods\')" style="padding: 8px 12px; font-size: 13px;">⚡ Browse Quick Foods</button>' +
+            '</div>';
         extras.forEach((extra, index) => {
             html += '<div class="extra-item">' +
                 '<div class="extra-item-info">' +
@@ -2039,7 +2055,7 @@ class RecipeManager {
         const food = this.quickFoods.find(f => f.id === foodId);
         if (!food) return;
 
-        const dateStr = this.currentNutritionDate;
+       const dateStr = new Date().toISOString().split('T')[0]; // Always add to today
         if (!this.dailyExtras[dateStr]) {
             this.dailyExtras[dateStr] = [];
         }
