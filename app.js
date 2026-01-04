@@ -315,6 +315,10 @@ class RecipeManager {
             this.generateShoppingList();
         });
 
+        document.getElementById('clear-week-btn').addEventListener('click', () => {
+            this.clearWeek();
+        });
+        
         document.getElementById('print-shopping-list').addEventListener('click', () => {
             window.print();
         });
@@ -494,22 +498,37 @@ class RecipeManager {
         
         mealOrder.forEach(mealType => {
             const recipeId = meals[mealType];
-            const recipe = recipeId ? self.recipes.find(r => r.id === recipeId) : null;
+            const meal = meals[mealType];
+            let mealName = null;
+            
+            if (meal) {
+                if (meal.type === 'recipe') {
+                    const recipe = self.recipes.find(r => r.id === meal.recipeId);
+                    mealName = recipe ? recipe.name : 'Recipe not found';
+                } else if (meal.type === 'custom') {
+                    mealName = meal.text;
+                }
+            }
             
             html += '<div class="dashboard-meal-item">' +
                 '<div class="dashboard-meal-info">' +
                 '<div class="dashboard-meal-type">' + mealLabels[mealType] + '</div>';
             
-            if (recipe) {
-                html += '<div class="dashboard-meal-name">' + self.escapeHtml(recipe.name) + '</div>';
+           if (mealName) {
+                html += '<div class="dashboard-meal-name">' + self.escapeHtml(mealName) + '</div>';
+          
             } else {
                 html += '<div class="dashboard-meal-empty">Not planned yet</div>';
             }
             
             html += '</div>';
-            
-            if (recipe) {
-                html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
+         if (meal && meal.type === 'recipe') {
+                const recipe = self.recipes.find(r => r.id === meal.recipeId);
+                if (recipe) {
+                    html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
+                }
+            } else if (mealName) {
+                html += '<button class="btn btn-secondary" onclick="recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Edit</button>';
             } else {
                 html += '<button class="btn btn-primary" onclick="recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Plan</button>';
             }
@@ -1608,6 +1627,31 @@ class RecipeManager {
         if (modal) {
             modal.remove();
         }
+    }
+
+    clearWeek() {
+        if (!confirm('Clear all meals for the next ' + this.mealPlanDays + ' days?')) {
+            return;
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Clear the next X days
+        for (let i = 0; i < this.mealPlanDays; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            if (this.mealPlan[dateStr]) {
+                delete this.mealPlan[dateStr];
+            }
+        }
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.renderMealPlan();
+        this.renderDashboard();
+        alert('Meal plan cleared!');
     }
     
     renderMealSlot(date, mealType, label) {
