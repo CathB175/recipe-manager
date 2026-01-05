@@ -1630,3 +1630,151 @@ main {
         text-align: center;
     }
 }
+
+/* Mobile Navigation Fixes */
+@media (max-width: 768px) {
+    nav {
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    nav::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    .nav-btn {
+        display: inline-block;
+        flex-shrink: 0;
+        min-width: auto;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    /* Dashboard improvements for mobile */
+    .dashboard-container {
+        padding: 0;
+    }
+    
+    .dashboard-section {
+        padding: 16px;
+        border-radius: 8px;
+    }
+    
+    .dashboard-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-collections-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-nutrition-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Meal plan mobile improvements */
+    .meal-plan-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .plan-days-selector {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .meal-day-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .meal-day-nutrition-summary {
+        font-size: 11px;
+    }
+    
+    .meal-slot-recipe {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    
+    .meal-slot-recipe-image {
+        width: 50px;
+        height: 50px;
+    }
+    
+    /* Recipe cards mobile */
+    #recipes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Modal improvements for mobile */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin: 10px;
+        max-height: 90vh;
+    }
+    
+    .meal-select-content {
+        width: 95%;
+        max-height: 85vh;
+        padding: 16px;
+    }
+    
+    /* Nutrition page mobile */
+    .nutrition-macros-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Quick foods mobile */
+    .quick-food-card {
+        padding: 12px;
+    }
+    
+    .quick-food-actions {
+        flex-direction: column;
+    }
+    
+    /* Shopping list mobile */
+    .shopping-list-item {
+        font-size: 14px;
+    }
+}
+
+/* Even smaller phones */
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+    
+    h1 {
+        font-size: 22px;
+    }
+    
+    .nav-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .dashboard-nutrition-card {
+        padding: 12px;
+    }
+    
+    .dashboard-nutrition-value {
+        font-size: 22px;
+    }
+    
+    .meal-day-header {
+        padding: 12px 16px;
+    }
+    
+    .meal-day-date {
+        font-size: 16px;
+    }
+}
