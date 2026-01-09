@@ -990,7 +990,7 @@ class RecipeManager {
         document.getElementById('meal-detail-modal').classList.remove('active');
     }
 
-    addMealToPlan(mealId) {
+   addMealToPlan(mealId) {
         const self = this;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1017,8 +1017,8 @@ class RecipeManager {
             '<option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option>' +
             '</select></div>' +
             '<div style="display: flex; gap: 12px;">' +
-            '<button onclick="recipeManager.confirmAddMealToPlan(\'' + mealId + '\')" class="btn btn-primary" style="flex: 1;">Add to Plan</button>' +
-            '<button onclick="recipeManager.cancelAddMealToPlan()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '<button id="confirm-add-meal-btn" class="btn btn-primary" style="flex: 1;">Add to Plan</button>' +
+            '<button id="cancel-add-meal-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
             '</div></div>';
         
         const tempModal = document.createElement('div');
@@ -1026,6 +1026,15 @@ class RecipeManager {
         tempModal.className = 'modal active';
         tempModal.innerHTML = '<div class="modal-content" style="max-width: 400px;">' + html + '</div>';
         document.body.appendChild(tempModal);
+        
+        // Attach event listeners after modal is added to DOM
+        document.getElementById('confirm-add-meal-btn').addEventListener('click', function() {
+            self.confirmAddMealToPlan(mealId);
+        });
+        
+        document.getElementById('cancel-add-meal-btn').addEventListener('click', function() {
+            self.cancelAddMealToPlan();
+        });
     }
 
     confirmAddMealToPlan(mealId) {
