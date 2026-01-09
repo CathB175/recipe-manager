@@ -1794,7 +1794,7 @@ class RecipeManager {
         let contentHTML = '';
         
        if (!meal) {
-            contentHTML = `<div class="meal-slot-empty" onclick="recipeManager.openMealSelector('${date}', '${mealType}')">
+            contentHTML = `<div class="meal-slot-empty" onclick="window.recipeManager.openMealSelector('${date}', '${mealType}')">
                 + Click to add ${mealType}
             </div>`;
         } else if (meal.type === 'meal') {
