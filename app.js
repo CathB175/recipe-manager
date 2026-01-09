@@ -1786,11 +1786,19 @@ class RecipeManager {
                     </div>
                     
                     <div class="meal-select-tabs">
-                        <button class="meal-select-tab active" data-tab="recipes">From Recipes</button>
+                        <button class="meal-select-tab active" data-tab="meals">Meals</button>
+                        <button class="meal-select-tab" data-tab="recipes">Recipes</button>
                         <button class="meal-select-tab" data-tab="custom">Custom Text</button>
                     </div>
                     
-                    <div id="meal-select-tab-recipes" class="meal-select-tab-content">
+                   <div id="meal-select-tab-meals" class="meal-select-tab-content">
+                        <div class="meal-select-search">
+                            <input type="text" id="meal-search-meals-input" placeholder="Search meals...">
+                        </div>
+                        <div id="meal-select-meals-list" class="meal-select-list"></div>
+                    </div>
+                    
+                    <div id="meal-select-tab-recipes" class="meal-select-tab-content" style="display: none;">
                         <div class="meal-select-search">
                             <input type="text" id="meal-search-input" placeholder="Search recipes...">
                         </div>
@@ -1832,7 +1840,12 @@ class RecipeManager {
             });
         });
         
-        // Setup search
+       // Setup search for meals
+        document.getElementById('meal-search-meals-input').addEventListener('input', function() {
+            self.filterMealSelectorMeals(this.value);
+        });
+        
+        // Setup search for recipes
         document.getElementById('meal-search-input').addEventListener('input', function() {
             self.filterMealRecipes(this.value);
         });
