@@ -604,8 +604,11 @@ class RecipeManager {
             const meal = meals[mealType];
             let mealName = null;
             
-            if (meal) {
-                if (meal.type === 'recipe') {
+           if (meal) {
+                if (meal.type === 'meal') {
+                    const mealData = self.meals.find(m => m.id === meal.mealId);
+                    mealName = mealData ? mealData.name : 'Meal not found';
+                } else if (meal.type === 'recipe') {
                     const recipe = self.recipes.find(r => r.id === meal.recipeId);
                     mealName = recipe ? recipe.name : 'Recipe not found';
                 } else if (meal.type === 'custom') {
@@ -1706,7 +1709,15 @@ class RecipeManager {
             const meal = meals[mealType];
             if (!meal) return;
             
-            if (meal.type === 'recipe') {
+            if (meal.type === 'meal') {
+                const mealData = self.meals.find(m => m.id === meal.mealId);
+                if (mealData) {
+                    totals.calories += mealData.calories || 0;
+                    totals.protein += mealData.protein || 0;
+                    totals.carbs += mealData.carbs || 0;
+                    totals.fat += mealData.fat || 0;
+                }
+            } else if (meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (recipe && recipe.nutrition) {
                     totals.calories += recipe.nutrition.calories || 0;
@@ -2085,11 +2096,34 @@ class RecipeManager {
         const mealData = [];
         
         const self = this;
-       mealOrder.forEach(mealType => {
+      mealOrder.forEach(mealType => {
             const meal = meals[mealType];
             if (!meal) return;
             
-            if (meal.type === 'recipe') {
+            if (meal.type === 'meal') {
+                const mealData = self.meals.find(m => m.id === meal.mealId);
+                if (!mealData) return;
+                
+                mealData.push({
+                    name: mealData.name,
+                    type: mealType,
+                    nutrition: {
+                        calories: mealData.calories,
+                        protein: mealData.protein,
+                        carbs: mealData.carbs,
+                        fat: mealData.fat,
+                        fiber: mealData.fiber,
+                        sugar: mealData.sugar
+                    }
+                });
+                
+                totals.calories += mealData.calories || 0;
+                totals.protein += mealData.protein || 0;
+                totals.carbs += mealData.carbs || 0;
+                totals.fat += mealData.fat || 0;
+                totals.fiber += mealData.fiber || 0;
+                totals.sugar += mealData.sugar || 0;
+            } else if (meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (!recipe) return;
                 
