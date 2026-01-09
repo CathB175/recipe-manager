@@ -29,13 +29,14 @@ class RecipeManager {
     async init() {
         this.setupEventListeners();
         await this.loadRecipesFromSupabase();
+        await this.loadMealsFromSupabase(); // ADD THIS LINE
         await this.loadQuickFoodsFromSupabase();
         this.renderRecipes();
         this.updateCollectionFilter();
         this.cleanOldMealPlan();
         this.renderMealPlan();
         this.setupNutritionDatePicker();
-        this.renderDashboard(); 
+        this.renderDashboard();
     }
 
     loadLocal(key) {
