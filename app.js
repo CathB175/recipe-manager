@@ -471,6 +471,8 @@ class RecipeManager {
 
         if (view === 'dashboard') {
             this.renderDashboard();
+        } else if (view === 'meals') {  // ADD THIS
+            this.renderMeals();
         } else if (view === 'shopping-list') {
             this.renderShoppingList();
         } else if (view === 'import-export') {
@@ -801,7 +803,212 @@ class RecipeManager {
             this.renderRecipes();
         }
     }
+
+    // Meals Management Functions
+    openMealModal(meal) {
+        meal = meal || null;
+        this.editingMealId = meal ? meal.id : null;
         
+        const modal = document.getElementById('meal-modal');
+        document.getElementById('meal-modal-title').textContent = meal ? 'Edit Meal' : 'Add Meal';
+        
+        if (meal) {
+            document.getElementById('meal-name').value = meal.name || '';
+            document.getElementById('meal-calories').value = meal.calories || '';
+            document.getElementById('meal-protein').value = meal.protein || '';
+            document.getElementById('meal-carbs').value = meal.carbs || '';
+            document.getElementById('meal-fat').value = meal.fat || '';
+            document.getElementById('meal-fiber').value = meal.fiber || '';
+            document.getElementById('meal-sugar').value = meal.sugar || '';
+        } else {
+            document.getElementById('meal-form').reset();
+        }
+        
+        modal.classList.add('active');
+    }
+
+    closeMealModal() {
+        document.getElementById('meal-modal').classList.remove('active');
+        this.editingMealId = null;
+    }
+
+    async saveMeal() {
+        const nameValue = document.getElementById('meal-name').value.trim();
+        
+        if (!nameValue) {
+            alert('Please enter a meal name');
+            return;
+        }
+        
+        const meal = {
+            id: this.editingMealId || Date.now().toString() + '-temp',
+            name: nameValue,
+            calories: parseFloat(document.getElementById('meal-calories').value) || 0,
+            protein: parseFloat(document.getElementById('meal-protein').value) || 0,
+            carbs: parseFloat(document.getElementById('meal-carbs').value) || 0,
+            fat: parseFloat(document.getElementById('meal-fat').value) || 0,
+            fiber: parseFloat(document.getElementById('meal-fiber').value) || 0,
+            sugar: parseFloat(document.getElementById('meal-sugar').value) || 0,
+            recipeId: null
+        };
+
+        try {
+            const newId = await this.saveMealToSupabase(meal);
+            meal.id = newId;
+
+            if (this.editingMealId) {
+                const index = this.meals.findIndex(m => m.id === this.editingMealId);
+                if (index !== -1) {
+                    this.meals[index] = meal;
+                }
+            } else {
+                this.meals.push(meal);
+            }
+
+            this.renderMeals();
+            this.closeMealModal();
+            alert('Meal saved to cloud!');
+        } catch (error) {
+            console.error('Error saving meal:', error);
+            alert('Error saving meal. Please try again.');
+        }
+    }
+
+    async deleteMeal(id) {
+        if (confirm('Delete this meal from the cloud?')) {
+            try {
+                await this.deleteMealFromSupabase(id);
+                this.meals = this.meals.filter(m => m.id !== id);
+                this.renderMeals();
+                this.closeMealDetailModal();
+                alert('Meal deleted!');
+            } catch (error) {
+                console.error('Error deleting meal:', error);
+                alert('Error deleting meal. Please try again.');
+            }
+        }
+    }
+
+    renderMeals() {
+        const searchTerm = document.getElementById('meals-search-input').value.toLowerCase();
+        
+        let filtered = this.meals.filter(meal => {
+            return meal.name.toLowerCase().includes(searchTerm);
+        });
+
+        const grid = document.getElementById('meals-grid');
+        
+        if (this.isLoading) {
+            grid.innerHTML = '<p class="empty-message">Loading meals from cloud...</p>';
+            return;
+        }
+        
+        if (filtered.length === 0) {
+            grid.innerHTML = '<p class="empty-message">No meals found. Add your first meal!</p>';
+            return;
+        }
+
+        const self = this;
+        grid.innerHTML = filtered.map(meal => {
+            const linkedBadge = meal.recipeId ? '<span class="meal-card-linked">Recipe</span>' : '';
+            
+            return '<div class="meal-card" onclick="mealManager.viewMeal(\'' + meal.id + '\')">' +
+                '<div class="meal-card-header">' +
+                '<div class="meal-card-title">' + self.escapeHtml(meal.name) + '</div>' +
+                linkedBadge +
+                '</div>' +
+                '<div class="meal-card-nutrition">' +
+                '<div class="meal-card-stat">' +
+                '<div class="meal-card-stat-value">' + Math.round(meal.calories) + '</div>' +
+                '<div class="meal-card-stat-label">Calories</div>' +
+                '</div>' +
+                '<div class="meal-card-stat">' +
+                '<div class="meal-card-stat-value">' + meal.protein.toFixed(1) + 'g</div>' +
+                '<div class="meal-card-stat-label">Protein</div>' +
+                '</div>' +
+                '<div class="meal-card-stat">' +
+                '<div class="meal-card-stat-value">' + meal.carbs.toFixed(1) + 'g</div>' +
+                '<div class="meal-card-stat-label">Carbs</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    viewMeal(id) {
+        const meal = this.meals.find(m => m.id === id);
+        if (!meal) {
+            alert('Meal not found');
+            return;
+        }
+
+        const self = this;
+        const content = document.getElementById('meal-detail-content');
+        
+        let html = '<div class="meal-detail-header">';
+        html += '<h2 class="meal-detail-title">' + self.escapeHtml(meal.name) + '</h2>';
+        html += '</div>';
+
+        html += '<div class="meal-detail-actions">';
+        html += '<button class="btn btn-primary" onclick="mealManager.addMealToPlan(\'' + meal.id + '\')">📅 Add to Meal Plan</button>';
+        html += '<button class="btn btn-primary" onclick="mealManager.openMealModal(mealManager.meals.find(m => m.id === \'' + meal.id + '\'))">✏️ Edit Meal</button>';
+        if (meal.recipeId) {
+            html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + meal.recipeId + '\'); mealManager.closeMealDetailModal();">📖 View Full Recipe</button>';
+        }
+        html += '<button class="btn btn-danger" onclick="mealManager.deleteMeal(\'' + meal.id + '\')">🗑️ Delete</button>';
+        html += '</div>';
+
+        if (meal.recipeId) {
+            const recipe = self.recipes.find(r => r.id === meal.recipeId);
+            if (recipe) {
+                html += '<div class="meal-linked-recipe">';
+                html += '<h3>🔗 Linked to Recipe</h3>';
+                html += '<div class="meal-linked-recipe-name">' + self.escapeHtml(recipe.name) + '</div>';
+                html += '<p style="color: #666; font-size: 14px;">This meal is linked to a full recipe with ingredients and instructions.</p>';
+                html += '</div>';
+            }
+        }
+
+        html += '<div class="meal-detail-nutrition"><h3>Nutrition Information (per serving)</h3>';
+        html += '<div class="meal-nutrition-grid">';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + Math.round(meal.calories) + '</span><span class="meal-nutrition-label">Calories</span></div>';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + meal.protein.toFixed(1) + 'g</span><span class="meal-nutrition-label">Protein</span></div>';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + meal.carbs.toFixed(1) + 'g</span><span class="meal-nutrition-label">Carbs</span></div>';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + meal.fat.toFixed(1) + 'g</span><span class="meal-nutrition-label">Fat</span></div>';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + meal.fiber.toFixed(1) + 'g</span><span class="meal-nutrition-label">Fiber</span></div>';
+        html += '<div class="meal-nutrition-item"><span class="meal-nutrition-value">' + meal.sugar.toFixed(1) + 'g</span><span class="meal-nutrition-label">Sugar</span></div>';
+        html += '</div></div>';
+
+        content.innerHTML = html;
+        document.getElementById('meal-detail-modal').classList.add('active');
+    }
+
+    closeMealDetailModal() {
+        document.getElementById('meal-detail-modal').classList.remove('active');
+    }
+
+    addMealToPlan(mealId) {
+        // Reuse the existing meal selector but pre-select this meal
+        const today = new Date().toISOString().split('T')[0];
+        recipeManager.currentMealDate = today;
+        recipeManager.currentMealType = 'lunch'; // Default to lunch
+        
+        // Directly add to meal plan
+        if (!recipeManager.mealPlan[today]) {
+            recipeManager.mealPlan[today] = {};
+        }
+        
+        recipeManager.mealPlan[today]['lunch'] = {
+            type: 'meal',
+            mealId: mealId
+        };
+        
+        recipeManager.saveLocal('mealPlan', recipeManager.mealPlan);
+        this.closeMealDetailModal();
+        recipeManager.switchView('meal-plan');
+        alert('Meal added to today\'s lunch! You can move it to a different time if needed.');
+    }
+    
     // CHUNK 3 OF 4 - Add this below Chunk 2
     openRecipeModal(recipe) {
         this.closeRecipeDetailModal();
