@@ -2767,10 +2767,13 @@ async importData() {
 let recipeManager;
 try {
     console.log('Starting RecipeManager...');
-    const recipeManager = new RecipeManager();
+   // Initialize the app
+const recipeManager = new RecipeManager();
 
-// Create global mealManager reference
+// Make globally accessible for HTML onclick handlers
+window.recipeManager = recipeManager;
 window.mealManager = recipeManager;
+    
     console.log('RecipeManager started successfully!');
 } catch (error) {
     console.error('Error starting RecipeManager:', error);
