@@ -1732,10 +1732,25 @@ class RecipeManager {
         
         let contentHTML = '';
         
-        if (!meal) {
+       if (!meal) {
             contentHTML = `<div class="meal-slot-empty" onclick="recipeManager.openMealSelector('${date}', '${mealType}')">
                 + Click to add ${mealType}
             </div>`;
+        } else if (meal.type === 'meal') {
+            const mealData = self.meals.find(m => m.id === meal.mealId);
+            if (mealData) {
+                contentHTML = `<div class="meal-slot-recipe">
+                    <div class="meal-slot-recipe-info">
+                        <div class="meal-slot-recipe-name">${self.escapeHtml(mealData.name)}</div>
+                        <div class="meal-slot-recipe-nutrition">
+                            ${mealData.calories ? `<span>${Math.round(mealData.calories)} cal</span>` : ''}
+                            ${mealData.protein ? `<span>${mealData.protein.toFixed(1)}g protein</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                contentHTML = `<div class="meal-slot-custom-text">Meal not found</div>`;
+            }
         } else if (meal.type === 'recipe') {
             const recipe = self.recipes.find(r => r.id === meal.recipeId);
             if (recipe) {
