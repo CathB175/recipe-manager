@@ -1051,17 +1051,7 @@ class RecipeManager {
             tempModal.remove();
         }
     }
-        
-        recipeManager.mealPlan[today]['lunch'] = {
-            type: 'meal',
-            mealId: mealId
-        };
-        
-        recipeManager.saveLocal('mealPlan', recipeManager.mealPlan);
-        this.closeMealDetailModal();
-        recipeManager.switchView('meal-plan');
-        alert('Meal added to today\'s lunch! You can move it to a different time if needed.');
-    }
+   
     
     // CHUNK 3 OF 4 - Add this below Chunk 2
     openRecipeModal(recipe) {
