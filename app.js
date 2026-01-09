@@ -2604,7 +2604,8 @@ async importData() {
 let recipeManager;
 try {
     console.log('Starting RecipeManager...');
-    recipeManager = new RecipeManager();
+    const recipeManager = new RecipeManager();
+    const mealManager = recipeManager; // CREATE ALIAS FOR MEALS FUNCTIONS
     console.log('RecipeManager started successfully!');
 } catch (error) {
     console.error('Error starting RecipeManager:', error);
