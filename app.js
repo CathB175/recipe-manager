@@ -631,19 +631,19 @@ class RecipeManager {
          if (meal && meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (recipe) {
-                    html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
+                    html += '<button class="btn btn-secondary" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
                 }
             } else if (mealName) {
-                html += '<button class="btn btn-secondary" onclick="recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Edit</button>';
+                html += '<button class="btn btn-secondary" onclick="window.recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Edit</button>';
             } else {
-                html += '<button class="btn btn-primary" onclick="recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Plan</button>';
+                html += '<button class="btn btn-primary" onclick="window.recipeManager.switchView(\'meal-plan\')" style="padding: 8px 16px;">Plan</button>';
             }
             
             html += '</div>';
         });
         
         if (!meals.breakfast && !meals.lunch && !meals.dinner) {
-            html = '<div class="dashboard-empty">No meals planned for today. <a href="#" onclick="recipeManager.switchView(\'meal-plan\'); return false;" style="color: #667eea;">Plan your meals</a></div>';
+            html = '<div class="dashboard-empty">No meals planned for today. <a href="#" onclick="window.recipeManager.switchView(\'meal-plan\'); return false;" style="color: #667eea;">Plan your meals</a></div>';
         }
         
         content.innerHTML = html;
@@ -766,7 +766,7 @@ class RecipeManager {
         const sortedCollections = Object.keys(collectionMap).sort();
         
         if (sortedCollections.length === 0) {
-            content.innerHTML = '<div class="dashboard-empty">No recipes found. <a href="#" onclick="recipeManager.switchView(\'recipes\'); return false;" style="color: #667eea;">Add your first recipe</a></div>';
+            content.innerHTML = '<div class="dashboard-empty">No recipes found. <a href="#" onclick="window.recipeManager.switchView(\'recipes\'); return false;" style="color: #667eea;">Add your first recipe</a></div>';
             return;
         }
         
@@ -774,7 +774,7 @@ class RecipeManager {
         
         sortedCollections.forEach(collection => {
             const recipes = collectionMap[collection];
-            html += '<div class="dashboard-collection-card" onclick="recipeManager.viewCollection(\'' + collection.replace(/'/g, "\\'") + '\')">' +
+            html += '<div class="dashboard-collection-card" onclick="window.recipeManager.viewCollection(\'' + collection.replace(/'/g, "\\'") + '\')">' +
                 '<div class="dashboard-collection-name">' + self.escapeHtml(collection) + '</div>' +
                 '<div class="dashboard-collection-count">' + recipes.length + '</div>' +
                 '<div class="dashboard-collection-recipes">' + (recipes.length === 1 ? 'recipe' : 'recipes') + '</div>' +
@@ -956,7 +956,7 @@ class RecipeManager {
         html += '<button class="btn btn-primary" onclick="mealManager.addMealToPlan(\'' + meal.id + '\')">📅 Add to Meal Plan</button>';
         html += '<button class="btn btn-primary" onclick="mealManager.openMealModal(mealManager.meals.find(m => m.id === \'' + meal.id + '\'))">✏️ Edit Meal</button>';
         if (meal.recipeId) {
-            html += '<button class="btn btn-secondary" onclick="recipeManager.viewRecipe(\'' + meal.recipeId + '\'); mealManager.closeMealDetailModal();">📖 View Full Recipe</button>';
+            html += '<button class="btn btn-secondary" onclick="window.recipeManager.viewRecipe(\'' + meal.recipeId + '\'); mealManager.closeMealDetailModal();">📖 View Full Recipe</button>';
         }
         html += '<button class="btn btn-danger" onclick="mealManager.deleteMeal(\'' + meal.id + '\')">🗑️ Delete</button>';
         html += '</div>';
@@ -1290,7 +1290,7 @@ class RecipeManager {
             const prepTime = recipe.prepTime || 0;
             const cookTime = recipe.cookTime || 0;
             
-            return '<div class="recipe-card" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\')" style="cursor: pointer;">' +
+            return '<div class="recipe-card" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\')" style="cursor: pointer;">' +
                 (recipe.image ? 
                     '<img src="' + recipe.image + '" alt="' + recipe.name + '" class="recipe-card-image" onerror="this.style.display=\'none\'">' :
                     '<div class="recipe-card-image"></div>') +
@@ -1361,18 +1361,18 @@ class RecipeManager {
             // Scaling buttons
             html += '<div class="recipe-scale-controls">';
             html += '<span class="recipe-scale-label">Scale Recipe:</span>';
-            html += '<button class="recipe-scale-btn ' + (scale === 0.5 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 0.5)">×0.5</button>';
-            html += '<button class="recipe-scale-btn ' + (scale === 1 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 1)">×1</button>';
-            html += '<button class="recipe-scale-btn ' + (scale === 2 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 2)">×2</button>';
-            html += '<button class="recipe-scale-btn ' + (scale === 3 ? 'active' : '') + '" onclick="recipeManager.viewRecipe(\'' + recipe.id + '\', 3)">×3</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 0.5 ? 'active' : '') + '" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\', 0.5)">×0.5</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 1 ? 'active' : '') + '" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\', 1)">×1</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 2 ? 'active' : '') + '" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\', 2)">×2</button>';
+            html += '<button class="recipe-scale-btn ' + (scale === 3 ? 'active' : '') + '" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\', 3)">×3</button>';
             html += '</div>';
 
           html += '<div class="recipe-detail-actions">';
-            html += '<button class="btn btn-primary" onclick="recipeManager.printRecipeCard()">🖨️ Print Card</button>';
-            html += '<button class="btn btn-primary" onclick="recipeManager.duplicateRecipe(\'' + recipe.id + '\')">📋 Duplicate</button>';
-            html += '<button class="btn btn-primary" onclick="recipeManager.addToMealPlan(\'' + recipe.id + '\')">📅 Add to Meal Plan</button>';
-            html += '<button class="btn btn-primary" onclick="recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === \'' + recipe.id + '\'))">✏️ Edit Recipe</button>';
-            html += '<button class="btn btn-danger" onclick="recipeManager.deleteRecipe(\'' + recipe.id + '\')">🗑️ Delete</button>';
+            html += '<button class="btn btn-primary" onclick="window.recipeManager.printRecipeCard()">🖨️ Print Card</button>';
+            html += '<button class="btn btn-primary" onclick="window.recipeManager.duplicateRecipe(\'' + recipe.id + '\')">📋 Duplicate</button>';
+            html += '<button class="btn btn-primary" onclick="window.recipeManager.addToMealPlan(\'' + recipe.id + '\')">📅 Add to Meal Plan</button>';
+            html += '<button class="btn btn-primary" onclick="window.recipeManager.openRecipeModal(recipeManager.recipes.find(r => r.id === \'' + recipe.id + '\'))">✏️ Edit Recipe</button>';
+            html += '<button class="btn btn-danger" onclick="window.recipeManager.deleteRecipe(\'' + recipe.id + '\')">🗑️ Delete</button>';
             html += '</div>';
 
             html += '<div class="recipe-detail-section"><h3>Ingredients' + (scale !== 1 ? ' (scaled ×' + scale + ')' : '') + '</h3><ul>';
@@ -1661,8 +1661,8 @@ class RecipeManager {
             '<option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option>' +
             '</select></div>' +
             '<div style="display: flex; gap: 12px;">' +
-            '<button onclick="recipeManager.confirmAddToMealPlan(\'' + recipeId + '\')" class="btn btn-primary" style="flex: 1;">Add to Plan</button>' +
-            '<button onclick="recipeManager.cancelAddToMealPlan()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '<button onclick="window.recipeManager.confirmAddToMealPlan(\'' + recipeId + '\')" class="btn btn-primary" style="flex: 1;">Add to Plan</button>' +
+            '<button onclick="window.recipeManager.cancelAddToMealPlan()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
             '</div></div>';
         
         const tempModal = document.createElement('div');
@@ -1886,8 +1886,8 @@ class RecipeManager {
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enter meal description:</label>
                             <input type="text" id="meal-custom-text" placeholder="e.g., Eating out, Leftovers, Takeaway..." value="${currentMeal && currentMeal.type === 'custom' ? currentMeal.text : ''}">
                             <div class="meal-custom-input-actions">
-                                <button class="btn btn-primary" onclick="recipeManager.saveCustomMeal('${date}', '${mealType}')">Save Custom Meal</button>
-                                <button class="btn btn-secondary" onclick="recipeManager.closeMealSelector()">Cancel</button>
+                                <button class="btn btn-primary" onclick="window.recipeManager.saveCustomMeal('${date}', '${mealType}')">Save Custom Meal</button>
+                                <button class="btn btn-secondary" onclick="window.recipeManager.closeMealSelector()">Cancel</button>
                             </div>
                         </div>
                     </div>
@@ -1959,7 +1959,7 @@ class RecipeManager {
         
         list.innerHTML = filtered.map(recipe => {
             const nutrition = recipe.nutrition || {};
-            return `<div class="meal-select-item" onclick="recipeManager.selectRecipeForMeal('${recipe.id}')">
+            return `<div class="meal-select-item" onclick="window.recipeManager.selectRecipeForMeal('${recipe.id}')">
                 <div>
                     <div class="meal-select-item-name">${self.escapeHtml(recipe.name)}</div>
                     <div class="meal-select-item-meta">
@@ -1984,12 +1984,12 @@ class RecipeManager {
         });
         
         if (filtered.length === 0) {
-            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No meals found. <a href="#" onclick="recipeManager.switchView(\'meals\'); recipeManager.closeMealSelector(); return false;" style="color: #667eea;">Add meals here</a></p>';
+            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No meals found. <a href="#" onclick="window.recipeManager.switchView(\'meals\'); recipeManager.closeMealSelector(); return false;" style="color: #667eea;">Add meals here</a></p>';
             return;
         }
         
         list.innerHTML = filtered.map(meal => {
-            return `<div class="meal-select-item" onclick="recipeManager.selectMealForPlan('${meal.id}')">
+            return `<div class="meal-select-item" onclick="window.recipeManager.selectMealForPlan('${meal.id}')">
                 <div>
                     <div class="meal-select-item-name">${self.escapeHtml(meal.name)}</div>
                     <div class="meal-select-item-meta">
@@ -2216,7 +2216,7 @@ class RecipeManager {
 
         if (mealData.length === 0 && extras.length === 0) {
             content.innerHTML = '<div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">' +
-                '<button class="btn btn-secondary" onclick="recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button></div>' +
+                '<button class="btn btn-secondary" onclick="window.recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button></div>' +
                 '<div class="nutrition-empty"><p>No meals planned for ' + formattedDate + '</p>' +
                 '<p>Add recipes to your meal plan to see nutrition information.</p></div>';
             return;
@@ -2235,7 +2235,7 @@ class RecipeManager {
         };
 
         let html = '<div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">' +
-            '<button class="btn btn-secondary" onclick="recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button></div>';
+            '<button class="btn btn-secondary" onclick="window.recipeManager.showNutritionGoalsModal()">⚙️ Set Daily Goals</button></div>';
 
         html += '<div class="nutrition-summary-modern"><div class="nutrition-summary-header"><h2>' + formattedDate + '</h2></div>';
         html += '<div class="nutrition-macros-grid">';
@@ -2287,7 +2287,7 @@ class RecipeManager {
        html += '<div class="nutrition-extras">' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">' +
             '<h3 style="margin: 0;">Snacks & Extras</h3>' +
-            '<button class="btn btn-secondary" onclick="recipeManager.switchView(\'quick-foods\')" style="padding: 8px 12px; font-size: 13px;">⚡ Browse Quick Foods</button>' +
+            '<button class="btn btn-secondary" onclick="window.recipeManager.switchView(\'quick-foods\')" style="padding: 8px 12px; font-size: 13px;">⚡ Browse Quick Foods</button>' +
             '</div>';
         extras.forEach((extra, index) => {
             html += '<div class="extra-item">' +
@@ -2299,10 +2299,10 @@ class RecipeManager {
                 '<span>' + (extra.carbs || 0).toFixed(1) + 'g carbs</span>' +
                 '<span>' + (extra.fat || 0).toFixed(1) + 'g fat</span>' +
                 '</div></div>' +
-                '<button class="extra-item-remove" onclick="recipeManager.removeExtra(' + index + ')">×</button>' +
+                '<button class="extra-item-remove" onclick="window.recipeManager.removeExtra(' + index + ')">×</button>' +
                 '</div>';
         });
-        html += '<button class="add-extra-btn" onclick="recipeManager.showAddExtraModal()">+ Add Snack/Extra</button></div>';
+        html += '<button class="add-extra-btn" onclick="window.recipeManager.showAddExtraModal()">+ Add Snack/Extra</button></div>';
 
         content.innerHTML = '<div class="recipe-print-card">' + html + '</div>';
     }
@@ -2326,8 +2326,8 @@ class RecipeManager {
             '<input type="number" id="goal-sugar" value="' + goals.sugar + '" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;"></div>' +
             '</div>' +
             '<div style="display: flex; gap: 12px;">' +
-            '<button onclick="recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>' +
-            '<button onclick="recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '<button onclick="window.recipeManager.saveNutritionGoals()" class="btn btn-primary" style="flex: 1;">Save Goals</button>' +
+            '<button onclick="window.recipeManager.cancelNutritionGoals()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
             '</div></div>';
         
         const tempModal = document.createElement('div');
@@ -2378,8 +2378,8 @@ class RecipeManager {
             '<input type="number" id="extra-sugar" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="19"></div>' +
             '</div>' +
             '<div style="display: flex; gap: 12px;">' +
-            '<button onclick="recipeManager.confirmAddExtra()" class="btn btn-primary" style="flex: 1;">Add Extra</button>' +
-            '<button onclick="recipeManager.cancelAddExtra()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '<button onclick="window.recipeManager.confirmAddExtra()" class="btn btn-primary" style="flex: 1;">Add Extra</button>' +
+            '<button onclick="window.recipeManager.cancelAddExtra()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
             '</div></div>';
         
         const tempModal = document.createElement('div');
@@ -2458,8 +2458,8 @@ class RecipeManager {
             '<input type="number" id="qf-sugar" value="' + (food ? food.sugar : '') + '" step="0.1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="19"></div>' +
             '</div>' +
             '<div style="display: flex; gap: 12px;">' +
-            '<button onclick="recipeManager.saveQuickFood()" class="btn btn-primary" style="flex: 1;">Save</button>' +
-            '<button onclick="recipeManager.cancelQuickFood()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '<button onclick="window.recipeManager.saveQuickFood()" class="btn btn-primary" style="flex: 1;">Save</button>' +
+            '<button onclick="window.recipeManager.cancelQuickFood()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
             '</div></div>';
         
         const tempModal = document.createElement('div');
@@ -2577,9 +2577,9 @@ class RecipeManager {
                 '<div class="quick-food-stat"><span class="stat-value">' + food.fat.toFixed(1) + 'g</span><span class="stat-label">fat</span></div>' +
                 '</div>' +
                 '<div class="quick-food-actions">' +
-                '<button class="btn btn-primary" onclick="recipeManager.addQuickFoodToDay(\'' + food.id + '\')" style="flex: 1;">➕ Add to Today</button>' +
-                '<button class="btn btn-secondary" onclick="recipeManager.openQuickFoodModal(recipeManager.quickFoods.find(f => f.id === \'' + food.id + '\'))" style="padding: 10px;">✏️</button>' +
-                '<button class="btn btn-danger" onclick="recipeManager.deleteQuickFood(\'' + food.id + '\')" style="padding: 10px;">🗑️</button>' +
+                '<button class="btn btn-primary" onclick="window.recipeManager.addQuickFoodToDay(\'' + food.id + '\')" style="flex: 1;">➕ Add to Today</button>' +
+                '<button class="btn btn-secondary" onclick="window.recipeManager.openQuickFoodModal(recipeManager.quickFoods.find(f => f.id === \'' + food.id + '\'))" style="padding: 10px;">✏️</button>' +
+                '<button class="btn btn-danger" onclick="window.recipeManager.deleteQuickFood(\'' + food.id + '\')" style="padding: 10px;">🗑️</button>' +
                 '</div></div>';
         }).join('');
     }
@@ -2676,7 +2676,7 @@ renderShoppingList() {
                     '<input type="checkbox" ' + (item.checked ? 'checked' : '') + ' onchange="recipeManager.toggleShoppingItem(' + item.index + ')">' +
                     '<span>' + self.escapeHtml(item.ingredient) + (item.count > 1 ? ' (×' + item.count + ')' : '') + '</span>' +
                     '</label>' +
-                    '<button class="shopping-remove-btn" onclick="recipeManager.removeShoppingItem(' + item.index + ')" title="Remove item">×</button>' +
+                    '<button class="shopping-remove-btn" onclick="window.recipeManager.removeShoppingItem(' + item.index + ')" title="Remove item">×</button>' +
                     '</li>';
             });
             html += '</ul></div>';
