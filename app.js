@@ -1857,9 +1857,10 @@ class RecipeManager {
             }
         });
         
-        // Initial recipe list
+        // Initial lists
         this.currentMealDate = date;
         this.currentMealType = mealType;
+        this.filterMealSelectorMeals(''); // Start with meals tab
         this.filterMealRecipes('');
     }
 
@@ -1896,6 +1897,55 @@ class RecipeManager {
         }).join('');
     }
 
+    filterMealSelectorMeals(searchTerm) {
+        const list = document.getElementById('meal-select-meals-list');
+        const self = this;
+        
+        const filtered = this.meals.filter(meal => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            return meal.name.toLowerCase().includes(term);
+        });
+        
+        if (filtered.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No meals found. <a href="#" onclick="recipeManager.switchView(\'meals\'); recipeManager.closeMealSelector(); return false;" style="color: #667eea;">Add meals here</a></p>';
+            return;
+        }
+        
+        list.innerHTML = filtered.map(meal => {
+            return `<div class="meal-select-item" onclick="recipeManager.selectMealForPlan('${meal.id}')">
+                <div>
+                    <div class="meal-select-item-name">${self.escapeHtml(meal.name)}</div>
+                    <div class="meal-select-item-meta">
+                        ${Math.round(meal.calories)} cal
+                        ${meal.protein ? ' • ' + meal.protein.toFixed(1) + 'g protein' : ''}
+                        ${meal.carbs ? ' • ' + meal.carbs.toFixed(1) + 'g carbs' : ''}
+                    </div>
+                </div>
+                <span>→</span>
+            </div>`;
+        }).join('');
+    }
+
+    selectMealForPlan(mealId) {
+        const date = this.currentMealDate;
+        const mealType = this.currentMealType;
+        
+        if (!this.mealPlan[date]) {
+            this.mealPlan[date] = {};
+        }
+        
+        this.mealPlan[date][mealType] = {
+            type: 'meal',
+            mealId: mealId
+        };
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
+    
     selectRecipeForMeal(recipeId) {
         const date = this.currentMealDate;
         const mealType = this.currentMealType;
