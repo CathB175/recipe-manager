@@ -2150,11 +2150,29 @@ class RecipeManager {
             const meal = meals[mealType];
             if (!meal) return;
             
-            if (meal.type === 'meal') {
-                const mealData = self.meals.find(m => m.id === meal.mealId);
-                if (!mealData) return;
+           if (meal.type === 'meal') {
+                const foundMeal = self.meals.find(m => m.id === meal.mealId);
+                if (!foundMeal) return;
                 
                 mealData.push({
+                    name: foundMeal.name,
+                    type: mealType,
+                    nutrition: {
+                        calories: foundMeal.calories,
+                        protein: foundMeal.protein,
+                        carbs: foundMeal.carbs,
+                        fat: foundMeal.fat,
+                        fiber: foundMeal.fiber,
+                        sugar: foundMeal.sugar
+                    }
+                });
+                
+                totals.calories += foundMeal.calories || 0;
+                totals.protein += foundMeal.protein || 0;
+                totals.carbs += foundMeal.carbs || 0;
+                totals.fat += foundMeal.fat || 0;
+                totals.fiber += foundMeal.fiber || 0;
+                totals.sugar += foundMeal.sugar || 0;
                     name: mealData.name,
                     type: mealType,
                     nutrition: {
