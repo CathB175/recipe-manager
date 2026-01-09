@@ -2173,24 +2173,7 @@ class RecipeManager {
                 totals.fat += foundMeal.fat || 0;
                 totals.fiber += foundMeal.fiber || 0;
                 totals.sugar += foundMeal.sugar || 0;
-                    name: mealData.name,
-                    type: mealType,
-                    nutrition: {
-                        calories: mealData.calories,
-                        protein: mealData.protein,
-                        carbs: mealData.carbs,
-                        fat: mealData.fat,
-                        fiber: mealData.fiber,
-                        sugar: mealData.sugar
-                    }
-                });
-                
-                totals.calories += mealData.calories || 0;
-                totals.protein += mealData.protein || 0;
-                totals.carbs += mealData.carbs || 0;
-                totals.fat += mealData.fat || 0;
-                totals.fiber += mealData.fiber || 0;
-                totals.sugar += mealData.sugar || 0;
+                   
             } else if (meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (!recipe) return;
