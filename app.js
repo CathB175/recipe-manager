@@ -2605,7 +2605,9 @@ let recipeManager;
 try {
     console.log('Starting RecipeManager...');
     const recipeManager = new RecipeManager();
-    const mealManager = recipeManager; // CREATE ALIAS FOR MEALS FUNCTIONS
+
+// Create global mealManager reference
+window.mealManager = recipeManager;
     console.log('RecipeManager started successfully!');
 } catch (error) {
     console.error('Error starting RecipeManager:', error);
