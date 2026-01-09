@@ -1838,8 +1838,8 @@ class RecipeManager {
             <div class="meal-slot-header">
                 <div class="meal-slot-label ${mealType}">${label}</div>
                 <div class="meal-slot-actions">
-                    ${meal ? `<button class="meal-slot-icon-btn" onclick="recipeManager.clearMealSlot('${date}', '${mealType}')" title="Clear">✕</button>` : ''}
-                    <button class="meal-slot-icon-btn" onclick="recipeManager.openMealSelector('${date}', '${mealType}')" title="Change">✏️</button>
+                   ${meal ? `<button class="meal-slot-icon-btn" onclick="window.recipeManager.clearMealSlot('${date}', '${mealType}')" title="Clear">✕</button>` : ''}
+                    <button class="meal-slot-icon-btn" onclick="window.recipeManager.openMealSelector('${date}', '${mealType}')" title="Change">✏️</button>
                 </div>
             </div>
             <div class="meal-slot-content">
