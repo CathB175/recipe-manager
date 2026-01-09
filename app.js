@@ -915,7 +915,7 @@ class RecipeManager {
         grid.innerHTML = filtered.map(meal => {
             const linkedBadge = meal.recipeId ? '<span class="meal-card-linked">Recipe</span>' : '';
             
-            return '<div class="meal-card" onclick="mealManager.viewMeal(\'' + meal.id + '\')">' +
+            return '<div class="meal-card"onclick="window.mealManager.viewMeal(\'' + meal.id + '\')">' +
                 '<div class="meal-card-header">' +
                 '<div class="meal-card-title">' + self.escapeHtml(meal.name) + '</div>' +
                 linkedBadge +
@@ -953,12 +953,12 @@ class RecipeManager {
         html += '</div>';
 
         html += '<div class="meal-detail-actions">';
-        html += '<button class="btn btn-primary" onclick="mealManager.addMealToPlan(\'' + meal.id + '\')">📅 Add to Meal Plan</button>';
-        html += '<button class="btn btn-primary" onclick="mealManager.openMealModal(mealManager.meals.find(m => m.id === \'' + meal.id + '\'))">✏️ Edit Meal</button>';
+        html += '<button class="btn btn-primary"onclick="window.mealManager.addMealToPlan(\'' + meal.id + '\')">📅 Add to Meal Plan</button>';
+        html += '<button class="btn btn-primary"onclick="window.mealManager.openMealModal(mealManager.meals.find(m => m.id === \'' + meal.id + '\'))">✏️ Edit Meal</button>';
         if (meal.recipeId) {
             html += '<button class="btn btn-secondary" onclick="window.recipeManager.viewRecipe(\'' + meal.recipeId + '\'); mealManager.closeMealDetailModal();">📖 View Full Recipe</button>';
         }
-        html += '<button class="btn btn-danger" onclick="mealManager.deleteMeal(\'' + meal.id + '\')">🗑️ Delete</button>';
+        html += '<button class="btn btn-danger"onclick="window.mealManager.deleteMeal(\'' + meal.id + '\')">🗑️ Delete</button>';
         html += '</div>';
 
         if (meal.recipeId) {
