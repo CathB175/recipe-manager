@@ -991,15 +991,66 @@ class RecipeManager {
     }
 
     addMealToPlan(mealId) {
-        // Reuse the existing meal selector but pre-select this meal
-        const today = new Date().toISOString().split('T')[0];
-        recipeManager.currentMealDate = today;
-        recipeManager.currentMealType = 'lunch'; // Default to lunch
+        const self = this;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
-        // Directly add to meal plan
-        if (!recipeManager.mealPlan[today]) {
-            recipeManager.mealPlan[today] = {};
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            days.push(date);
         }
+        
+        const dayOptions = days.map(date => {
+            const dateStr = date.toISOString().split('T')[0];
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            return '<option value="' + dateStr + '">' + dayName + '</option>';
+        }).join('');
+        
+        const html = '<div style="padding: 20px;"><h3 style="margin-bottom: 16px;">Add to Meal Plan</h3>' +
+            '<div style="margin-bottom: 12px;"><label style="display: block; margin-bottom: 6px; font-weight: 600;">Day:</label>' +
+            '<select id="add-meal-day" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">' +
+            dayOptions + '</select></div>' +
+            '<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 6px; font-weight: 600;">Meal:</label>' +
+            '<select id="add-meal-type" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px;">' +
+            '<option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option>' +
+            '</select></div>' +
+            '<div style="display: flex; gap: 12px;">' +
+            '<button onclick="recipeManager.confirmAddMealToPlan(\'' + mealId + '\')" class="btn btn-primary" style="flex: 1;">Add to Plan</button>' +
+            '<button onclick="recipeManager.cancelAddMealToPlan()" class="btn btn-secondary" style="flex: 1;">Cancel</button>' +
+            '</div></div>';
+        
+        const tempModal = document.createElement('div');
+        tempModal.id = 'temp-add-meal-modal';
+        tempModal.className = 'modal active';
+        tempModal.innerHTML = '<div class="modal-content" style="max-width: 400px;">' + html + '</div>';
+        document.body.appendChild(tempModal);
+    }
+
+    confirmAddMealToPlan(mealId) {
+        const day = document.getElementById('add-meal-day').value;
+        const mealType = document.getElementById('add-meal-type').value;
+        
+        if (!this.mealPlan[day]) this.mealPlan[day] = {};
+        this.mealPlan[day][mealType] = {
+            type: 'meal',
+            mealId: mealId
+        };
+        
+        this.saveLocal('mealPlan', this.mealPlan);
+        this.cancelAddMealToPlan();
+        this.closeMealDetailModal();
+        this.switchView('meal-plan');
+        alert('Meal added to plan!');
+    }
+
+    cancelAddMealToPlan() {
+        const tempModal = document.getElementById('temp-add-meal-modal');
+        if (tempModal) {
+            tempModal.remove();
+        }
+    }
         
         recipeManager.mealPlan[today]['lunch'] = {
             type: 'meal',
