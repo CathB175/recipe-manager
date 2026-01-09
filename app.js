@@ -2770,12 +2770,13 @@ try {
    // Initialize the app
 const recipeManager = new RecipeManager();
 
-// Make globally accessible for HTML onclick handlers
-window.recipeManager = recipeManager;
-window.mealManager = recipeManager;
-    
     console.log('RecipeManager started successfully!');
 } catch (error) {
     console.error('Error starting RecipeManager:', error);
     alert('Error starting app: ' + error.message);
 }
+
+// Make globally accessible for HTML onclick handlers
+window.recipeManager = recipeManager;
+window.mealManager = recipeManager;
+console.log('RecipeManager initialized:', window.recipeManager); // ADD THIS
