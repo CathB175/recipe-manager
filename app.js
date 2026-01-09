@@ -13,6 +13,7 @@ class RecipeManager {
         };
         
         this.recipes = [];
+        this.meals = []; // ADD THIS LINE
         this.quickFoods = [];
         this.shoppingList = [];
         this.currentView = 'dashboard';
@@ -249,6 +250,91 @@ class RecipeManager {
             if (error) throw error;
         } catch (error) {
             console.error('Error deleting quick food:', error);
+            throw error;
+        }
+    }
+
+    // Meals Supabase functions
+    async loadMealsFromSupabase() {
+        try {
+            this.isLoading = true;
+            const { data, error } = await supabase
+                .from('meals')
+                .select('*')
+                .order('name');
+            
+            if (error) throw error;
+            
+            this.meals = (data || []).map(meal => ({
+                id: meal.id,
+                name: meal.name,
+                calories: meal.calories || 0,
+                protein: meal.protein || 0,
+                carbs: meal.carbs || 0,
+                fat: meal.fat || 0,
+                fiber: meal.fiber || 0,
+                sugar: meal.sugar || 0,
+                recipeId: meal.recipe_id || null
+            }));
+            
+            console.log('Loaded', this.meals.length, 'meals from Supabase');
+        } catch (error) {
+            console.error('Error loading meals:', error);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async saveMealToSupabase(meal) {
+        try {
+            const supabaseMeal = {
+                name: meal.name,
+                calories: meal.calories,
+                protein: meal.protein,
+                carbs: meal.carbs,
+                fat: meal.fat,
+                fiber: meal.fiber,
+                sugar: meal.sugar,
+                recipe_id: meal.recipeId || null,
+                updated_at: new Date().toISOString()
+            };
+
+            const isValidUUID = meal.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meal.id);
+            
+            if (!isValidUUID) {
+                const { data, error } = await supabase
+                    .from('meals')
+                    .insert([supabaseMeal])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                return data.id;
+            } else {
+                const { error } = await supabase
+                    .from('meals')
+                    .update(supabaseMeal)
+                    .eq('id', meal.id);
+                
+                if (error) throw error;
+                return meal.id;
+            }
+        } catch (error) {
+            console.error('Error saving meal:', error);
+            throw error;
+        }
+    }
+
+    async deleteMealFromSupabase(id) {
+        try {
+            const { error } = await supabase
+                .from('meals')
+                .delete()
+                .eq('id', id);
+            
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error deleting meal:', error);
             throw error;
         }
     }
