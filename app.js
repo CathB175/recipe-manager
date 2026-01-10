@@ -2757,26 +2757,17 @@ async importData() {
             textarea.value = '';
             alert('Data imported successfully to cloud!');
         }
-    } catch (e) {
-        alert('Error importing data: ' + e.message);
+   } catch (e) {
+            alert('Error importing data: ' + e.message);
+        }
     }
 }
-    }
-// Initialize the app
-// Initialize the app with error handling
-let recipeManager;
-try {
-    console.log('Starting RecipeManager...');
-   // Initialize the app
-const recipeManager = new RecipeManager();
 
-    console.log('RecipeManager started successfully!');
-} catch (error) {
-    console.error('Error starting RecipeManager:', error);
-    alert('Error starting app: ' + error.message);
-}
+// Initialize the app
+const recipeManager = new RecipeManager();
 
 // Make globally accessible for HTML onclick handlers
 window.recipeManager = recipeManager;
 window.mealManager = recipeManager;
-console.log('RecipeManager initialized:', window.recipeManager); // ADD THIS
+
+console.log('RecipeManager initialized:', window.recipeManager);
