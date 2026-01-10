@@ -1790,9 +1790,30 @@ class RecipeManager {
         const meals = this.mealPlan[date] || {};
         const meal = meals[mealType];
         const self = this;
+
+        renderMealSlotModern(date, mealType, label) {
+        const meals = this.mealPlan[date] || {};
+        let meal = meals[mealType];
+        const self = this;
+        
+        // MIGRATION: Convert old string format to new object format
+        if (meal && typeof meal === 'string') {
+            // Old format was just a recipe ID string
+            meal = {
+                type: 'recipe',
+                recipeId: meal
+            };
+            // Update the stored data
+            if (!this.mealPlan[date]) this.mealPlan[date] = {};
+            this.mealPlan[date][mealType] = meal;
+            this.saveLocal('mealPlan', this.mealPlan);
+        }
         
         let contentHTML = '';
         
+        // ... rest of the function continues as normal
+            
+             
        if (!meal) {
             contentHTML = `<div class="meal-slot-empty" onclick="window.recipeManager.openMealSelector('${date}', '${mealType}')">
                 + Click to add ${mealType}
