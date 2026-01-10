@@ -1788,9 +1788,10 @@ class RecipeManager {
 
     renderMealSlotModern(date, mealType, label) {
         const meals = this.mealPlan[date] || {};
-        const meal = meals[mealType];
         const self = this;
-
+        
+        // Get meal and handle migration
+        let meal = meals[mealType];  // Use 'let' instead of 'const'
         
         // MIGRATION: Convert old string format to new object format
         if (meal && typeof meal === 'string') {
