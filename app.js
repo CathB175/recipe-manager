@@ -31,6 +31,9 @@ class RecipeManager {
         await this.loadRecipesFromSupabase();
         await this.loadMealsFromSupabase(); // ADD THIS LINE
         await this.loadQuickFoodsFromSupabase();
+        await this.loadMealPlansFromSupabase();  // ADD THIS
+        await this.loadDailyExtrasFromSupabase();  // ADD THIS
+        await this.loadNutritionGoalsFromSupabase();  // ADD THIS
         this.renderRecipes();
         this.updateCollectionFilter();
         this.cleanOldMealPlan();
