@@ -2307,7 +2307,7 @@ class RecipeManager {
         this.renderDashboard();
     }
 
-    clearMealSlot(date, mealType) {
+   async clearMealSlot(date, mealType) {
         if (this.mealPlan[date] && this.mealPlan[date][mealType]) {
             delete this.mealPlan[date][mealType];
             
@@ -2316,7 +2316,14 @@ class RecipeManager {
                 delete this.mealPlan[date];
             }
             
-            this.saveLocal('mealPlan', this.mealPlan);
+            // Delete from cloud
+            try {
+                await this.saveMealPlanToSupabase(date, mealType, null);
+            } catch (error) {
+                alert('Error updating cloud. Please try again.');
+                return;
+            }
+            
             this.renderMealPlan();
             this.renderDashboard();
         }
