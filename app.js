@@ -340,6 +340,189 @@ class RecipeManager {
         }
     }
 
+    // Meal Plan Supabase Functions
+    async loadMealPlansFromSupabase() {
+        try {
+            const { data, error } = await supabase
+                .from('meal_plans')
+                .select('*');
+            
+            if (error) throw error;
+            
+            // Convert to local format
+            this.mealPlan = {};
+            (data || []).forEach(plan => {
+                const dateStr = plan.date;
+                if (!this.mealPlan[dateStr]) {
+                    this.mealPlan[dateStr] = {};
+                }
+                
+                const mealData = {
+                    type: plan.data_type
+                };
+                
+                if (plan.data_type === 'meal') {
+                    mealData.mealId = plan.meal_id;
+                } else if (plan.data_type === 'recipe') {
+                    mealData.recipeId = plan.recipe_id;
+                } else if (plan.data_type === 'custom') {
+                    mealData.text = plan.custom_text;
+                }
+                
+                this.mealPlan[dateStr][plan.meal_type] = mealData;
+            });
+            
+            console.log('Loaded meal plans from Supabase');
+        } catch (error) {
+            console.error('Error loading meal plans:', error);
+        }
+    }
+
+    async saveMealPlanToSupabase(date, mealType, mealData) {
+        try {
+            if (!mealData) {
+                // Delete if null/undefined
+                const { error } = await supabase
+                    .from('meal_plans')
+                    .delete()
+                    .eq('date', date)
+                    .eq('meal_type', mealType);
+                
+                if (error) throw error;
+                return;
+            }
+            
+            const supabasePlan = {
+                date: date,
+                meal_type: mealType,
+                data_type: mealData.type,
+                meal_id: mealData.mealId || null,
+                recipe_id: mealData.recipeId || null,
+                custom_text: mealData.text || null,
+                updated_at: new Date().toISOString()
+            };
+            
+            // Upsert (insert or update)
+            const { error } = await supabase
+                .from('meal_plans')
+                .upsert(supabasePlan, {
+                    onConflict: 'date,meal_type'
+                });
+            
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error saving meal plan:', error);
+            throw error;
+        }
+    }
+
+    async loadDailyExtrasFromSupabase() {
+        try {
+            const { data, error } = await supabase
+                .from('daily_extras')
+                .select('*')
+                .order('date');
+            
+            if (error) throw error;
+            
+            this.dailyExtras = {};
+            (data || []).forEach(extra => {
+                const dateStr = extra.date;
+                if (!this.dailyExtras[dateStr]) {
+                    this.dailyExtras[dateStr] = [];
+                }
+                this.dailyExtras[dateStr].push({
+                    id: extra.id,
+                    name: extra.name,
+                    calories: extra.calories,
+                    protein: extra.protein
+                });
+            });
+            
+            console.log('Loaded daily extras from Supabase');
+        } catch (error) {
+            console.error('Error loading daily extras:', error);
+        }
+    }
+
+    async saveDailyExtraToSupabase(date, extra) {
+        try {
+            const { error } = await supabase
+                .from('daily_extras')
+                .insert({
+                    date: date,
+                    name: extra.name,
+                    calories: extra.calories,
+                    protein: extra.protein
+                });
+            
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error saving daily extra:', error);
+            throw error;
+        }
+    }
+
+    async deleteDailyExtraFromSupabase(id) {
+        try {
+            const { error } = await supabase
+                .from('daily_extras')
+                .delete()
+                .eq('id', id);
+            
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error deleting daily extra:', error);
+            throw error;
+        }
+    }
+
+    async loadNutritionGoalsFromSupabase() {
+        try {
+            const { data, error } = await supabase
+                .from('nutrition_goals')
+                .select('*')
+                .limit(1)
+                .single();
+            
+            if (error) throw error;
+            
+            if (data) {
+                this.nutritionGoals = {
+                    calories: data.calories,
+                    protein: data.protein,
+                    carbs: data.carbs,
+                    fat: data.fat
+                };
+            }
+            
+            console.log('Loaded nutrition goals from Supabase');
+        } catch (error) {
+            console.error('Error loading nutrition goals:', error);
+        }
+    }
+
+    async saveNutritionGoalsToSupabase() {
+        try {
+            // Update the single row
+            const { error } = await supabase
+                .from('nutrition_goals')
+                .update({
+                    calories: this.nutritionGoals.calories,
+                    protein: this.nutritionGoals.protein,
+                    carbs: this.nutritionGoals.carbs,
+                    fat: this.nutritionGoals.fat,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', (await supabase.from('nutrition_goals').select('id').limit(1).single()).data.id);
+            
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error saving nutrition goals:', error);
+            throw error;
+        }
+    }
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
