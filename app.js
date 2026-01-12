@@ -2207,7 +2207,7 @@ class RecipeManager {
         }).join('');
     }
 
-    selectMealForPlan(mealId) {
+   async selectMealForPlan(mealId) {
         const date = this.currentMealDate;
         const mealType = this.currentMealType;
         
@@ -2220,13 +2220,26 @@ class RecipeManager {
             mealId: mealId
         };
         
+        // Save to cloud
+        try {
+            await this.saveMealPlanToSupabase(date, mealType, this.mealPlan[date][mealType]);
+        } catch (error) {
+            alert('Error saving to cloud. Please try again.');
+            return;
+        }
+        
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
+        
         this.saveLocal('mealPlan', this.mealPlan);
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
     }
     
-    selectRecipeForMeal(recipeId) {
+   async selectRecipeForMeal(recipeId) {
         const date = this.currentMealDate;
         const mealType = this.currentMealType;
         
@@ -2239,13 +2252,26 @@ class RecipeManager {
             recipeId: recipeId
         };
         
+        // Save to cloud
+        try {
+            await this.saveMealPlanToSupabase(date, mealType, this.mealPlan[date][mealType]);
+        } catch (error) {
+            alert('Error saving to cloud. Please try again.');
+            return;
+        }
+        
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
+        
         this.saveLocal('mealPlan', this.mealPlan);
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
     }
 
-    saveCustomMeal(date, mealType) {
+    async saveCustomMeal(date, mealType) {
         const text = document.getElementById('meal-custom-text').value.trim();
         
         if (!text) {
@@ -2261,6 +2287,19 @@ class RecipeManager {
             type: 'custom',
             text: text
         };
+        
+        // Save to cloud
+        try {
+            await this.saveMealPlanToSupabase(date, mealType, this.mealPlan[date][mealType]);
+        } catch (error) {
+            alert('Error saving to cloud. Please try again.');
+            return;
+        }
+        
+        this.closeMealSelector();
+        this.renderMealPlan();
+        this.renderDashboard();
+    }
         
         this.saveLocal('mealPlan', this.mealPlan);
         this.closeMealSelector();
