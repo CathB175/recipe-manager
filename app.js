@@ -740,8 +740,8 @@ class RecipeManager {
             }
         });
         
-        this.saveLocal('mealPlan', this.mealPlan);
-        this.saveLocal('dailyExtras', this.dailyExtras);
+        
+        
     }
         
       
@@ -1233,7 +1233,7 @@ class RecipeManager {
             mealId: mealId
         };
         
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         this.cancelAddMealToPlan();
         this.closeMealDetailModal();
         this.switchView('meal-plan');
@@ -1864,7 +1864,7 @@ class RecipeManager {
         
         if (!this.mealPlan[day]) this.mealPlan[day] = {};
         this.mealPlan[day][mealType] = recipeId;
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         
         this.cancelAddToMealPlan();
         alert('Recipe added to meal plan!');
@@ -1989,7 +1989,7 @@ class RecipeManager {
             // Update the stored data
             if (!this.mealPlan[date]) this.mealPlan[date] = {};
             this.mealPlan[date][mealType] = meal;
-            this.saveLocal('mealPlan', this.mealPlan);
+            
         }
         
         let contentHTML = '';
@@ -2233,7 +2233,7 @@ class RecipeManager {
         this.renderDashboard();
     }
         
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
@@ -2265,7 +2265,7 @@ class RecipeManager {
         this.renderDashboard();
     }
         
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
@@ -2301,7 +2301,7 @@ class RecipeManager {
         this.renderDashboard();
     }
         
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
@@ -2355,7 +2355,7 @@ class RecipeManager {
             }
         }
         
-        this.saveLocal('mealPlan', this.mealPlan);
+        
         this.renderMealPlan();
         this.renderDashboard();
         alert('Meal plan cleared!');
@@ -2663,7 +2663,7 @@ class RecipeManager {
             this.dailyExtras[dateStr] = [];
         }
         this.dailyExtras[dateStr].push(extra);
-        this.saveLocal('dailyExtras', this.dailyExtras);
+        
 
         this.cancelAddExtra();
         this.renderNutritionView();
@@ -2820,7 +2820,7 @@ class RecipeManager {
         }
     }
         
-        this.saveLocal('dailyExtras', this.dailyExtras);
+        
         alert(food.name + ' added to ' + this.currentNutritionDate + '!');
         
         if (this.currentView !== 'nutrition') {
@@ -3016,9 +3016,9 @@ async importData() {
             this.dailyExtras = data.dailyExtras || {};
             this.nutritionGoals = data.nutritionGoals || this.nutritionGoals;
             
-            this.saveLocal('mealPlan', this.mealPlan);
-            this.saveLocal('dailyExtras', this.dailyExtras);
-            this.saveLocal('nutritionGoals', this.nutritionGoals);
+            
+            
+            
             
             await this.loadRecipesFromSupabase();
             await this.loadQuickFoodsFromSupabase();
