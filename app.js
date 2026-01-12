@@ -2587,19 +2587,21 @@ class RecipeManager {
         document.body.appendChild(tempModal);
     }
 
-    saveNutritionGoals() {
-        this.nutritionGoals = {
-            calories: parseFloat(document.getElementById('goal-calories').value) || 2000,
-            protein: parseFloat(document.getElementById('goal-protein').value) || 150,
-            carbs: parseFloat(document.getElementById('goal-carbs').value) || 225,
-            fat: parseFloat(document.getElementById('goal-fat').value) || 65,
-            fiber: parseFloat(document.getElementById('goal-fiber').value) || 25,
-            sugar: parseFloat(document.getElementById('goal-sugar').value) || 50
-        };
+   async saveNutritionGoals() {
+        this.nutritionGoals.calories = parseInt(document.getElementById('goal-calories').value) || 2000;
+        this.nutritionGoals.protein = parseInt(document.getElementById('goal-protein').value) || 150;
+        this.nutritionGoals.carbs = parseInt(document.getElementById('goal-carbs').value) || 200;
+        this.nutritionGoals.fat = parseInt(document.getElementById('goal-fat').value) || 65;
         
-        this.saveLocal('nutritionGoals', this.nutritionGoals);
-        this.cancelNutritionGoals();
-        this.renderNutritionView();
+        // Save to cloud
+        try {
+            await this.saveNutritionGoalsToSupabase();
+            this.renderDashboard();
+            this.renderNutritionView();
+            alert('Nutrition goals saved to cloud!');
+        } catch (error) {
+            alert('Error saving goals to cloud. Please try again.');
+        }
     }
 
     cancelNutritionGoals() {
@@ -2674,15 +2676,26 @@ class RecipeManager {
         }
     }
 
-    removeExtra(index) {
-        const dateStr = this.currentNutritionDate;
-        if (this.dailyExtras[dateStr]) {
-            this.dailyExtras[dateStr].splice(index, 1);
-            if (this.dailyExtras[dateStr].length === 0) {
-                delete this.dailyExtras[dateStr];
+    async removeExtra(date, index) {
+        if (this.dailyExtras[date] && this.dailyExtras[date][index]) {
+            const extra = this.dailyExtras[date][index];
+            
+            // Delete from cloud
+            try {
+                if (extra.id) {
+                    await this.deleteDailyExtraFromSupabase(extra.id);
+                }
+                this.dailyExtras[date].splice(index, 1);
+                
+                if (this.dailyExtras[date].length === 0) {
+                    delete this.dailyExtras[date];
+                }
+                
+                this.renderDashboard();
+                this.renderNutritionView();
+            } catch (error) {
+                alert('Error deleting from cloud. Please try again.');
             }
-            this.saveLocal('dailyExtras', this.dailyExtras);
-            this.renderNutritionView();
         }
     }
 
@@ -2779,24 +2792,33 @@ class RecipeManager {
         }
     }
 
-    addQuickFoodToDay(foodId) {
+   async addQuickFoodToDay(foodId) {
+        const dateStr = new Date().toISOString().split('T')[0];
         const food = this.quickFoods.find(f => f.id === foodId);
+        
         if (!food) return;
-
-       const dateStr = new Date().toISOString().split('T')[0]; // Always add to today
+        
         if (!this.dailyExtras[dateStr]) {
             this.dailyExtras[dateStr] = [];
         }
         
-        this.dailyExtras[dateStr].push({
+        const extra = {
             name: food.name,
             calories: food.calories,
-            protein: food.protein,
-            carbs: food.carbs,
-            fat: food.fat,
-            fiber: food.fiber,
-            sugar: food.sugar
-        });
+            protein: food.protein
+        };
+        
+        // Save to cloud first
+        try {
+            await this.saveDailyExtraToSupabase(dateStr, extra);
+            this.dailyExtras[dateStr].push(extra);
+            this.renderDashboard();
+            this.renderNutritionView();
+            alert('Added to today!');
+        } catch (error) {
+            alert('Error saving to cloud. Please try again.');
+        }
+    }
         
         this.saveLocal('dailyExtras', this.dailyExtras);
         alert(food.name + ' added to ' + this.currentNutritionDate + '!');
