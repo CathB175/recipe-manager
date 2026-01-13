@@ -2570,20 +2570,27 @@ class RecipeManager {
         document.body.appendChild(tempModal);
     }
 
-   async saveNutritionGoals() {
-        this.nutritionGoals.calories = parseInt(document.getElementById('goal-calories').value) || 2000;
-        this.nutritionGoals.protein = parseInt(document.getElementById('goal-protein').value) || 150;
-        this.nutritionGoals.carbs = parseInt(document.getElementById('goal-carbs').value) || 200;
-        this.nutritionGoals.fat = parseInt(document.getElementById('goal-fat').value) || 65;
-        
-        // Save to cloud
+ async saveNutritionGoalsToSupabase() {
         try {
-            await this.saveNutritionGoalsToSupabase();
-            this.renderDashboard();
-            this.renderNutritionView();
-            alert('Nutrition goals saved to cloud!');
+            const { data } = await supabase.from('nutrition_goals').select('id').limit(1).single();
+            
+            const { error } = await supabase
+                .from('nutrition_goals')
+                .update({
+                    calories: this.nutritionGoals.calories,
+                    protein: this.nutritionGoals.protein,
+                    carbs: this.nutritionGoals.carbs,
+                    fat: this.nutritionGoals.fat,
+                    fiber: this.nutritionGoals.fiber,
+                    sugar: this.nutritionGoals.sugar,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', data.id);
+            
+            if (error) throw error;
         } catch (error) {
-            alert('Error saving goals to cloud. Please try again.');
+            console.error('Error saving nutrition goals:', error);
+            throw error;
         }
     }
 
