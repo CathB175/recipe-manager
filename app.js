@@ -2289,11 +2289,6 @@ class RecipeManager {
         this.renderDashboard();
     }
         
-        
-        this.closeMealSelector();
-        this.renderMealPlan();
-        this.renderDashboard();
-    }
 
    async clearMealSlot(date, mealType) {
         if (this.mealPlan[date] && this.mealPlan[date][mealType]) {
