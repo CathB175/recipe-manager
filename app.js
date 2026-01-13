@@ -2228,10 +2228,6 @@ class RecipeManager {
             return;
         }
         
-        this.closeMealSelector();
-        this.renderMealPlan();
-        this.renderDashboard();
-    }
         
         
         this.closeMealSelector();
