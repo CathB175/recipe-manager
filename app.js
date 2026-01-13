@@ -2804,14 +2804,8 @@ class RecipeManager {
     }
         
         
-        alert(food.name + ' added to ' + this.currentNutritionDate + '!');
         
-        if (this.currentView !== 'nutrition') {
-            this.switchView('nutrition');
-        } else {
-            this.renderNutritionView();
-        }
-    }
+
 
     renderQuickFoods() {
         const grid = document.getElementById('quick-foods-grid');
