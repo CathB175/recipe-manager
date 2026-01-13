@@ -2207,7 +2207,7 @@ class RecipeManager {
         }).join('');
     }
 
-   async selectMealForPlan(mealId) {
+ async selectMealForPlan(mealId) {
         const date = this.currentMealDate;
         const mealType = this.currentMealType;
         
@@ -2228,14 +2228,12 @@ class RecipeManager {
             return;
         }
         
-        
-        
         this.closeMealSelector();
         this.renderMealPlan();
         this.renderDashboard();
     }
     
-   async selectRecipeForMeal(recipeId) {
+    async selectRecipeForMeal(recipeId) {
         const date = this.currentMealDate;
         const mealType = this.currentMealType;
         
@@ -2255,12 +2253,6 @@ class RecipeManager {
             alert('Error saving to cloud. Please try again.');
             return;
         }
-        
-        this.closeMealSelector();
-        this.renderMealPlan();
-        this.renderDashboard();
-    }
-        
         
         this.closeMealSelector();
         this.renderMealPlan();
