@@ -1800,19 +1800,17 @@ class RecipeManager {
                         <p style="color: #666; font-size: 14px;">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                     </div>
                     
-                   <div class="meal-select-tabs">
+                    <div class="meal-select-tabs">
                         <button class="meal-select-tab active" data-tab="recipes">Recipes</button>
                         <button class="meal-select-tab" data-tab="custom">Custom Text</button>
                     </div>
                     
-                   <div id="meal-select-tab-recipes" class="meal-select-tab-content">
+                    <div id="meal-select-tab-recipes" class="meal-select-tab-content">
                         <div class="meal-select-search">
-                            <input type="text" id="meal-search-meals-input" placeholder="Search meals...">
+                            <input type="text" id="meal-search-input" placeholder="Search recipes...">
                         </div>
-                        <div id="meal-select-meals-list" class="meal-select-list"></div>
+                        <div id="meal-select-recipe-list" class="meal-select-list"></div>
                     </div>
-                    
-                  
                     
                     <div id="meal-select-tab-custom" class="meal-select-tab-content" style="display: none;">
                         <div class="meal-custom-input-section">
@@ -1849,12 +1847,7 @@ class RecipeManager {
             });
         });
         
-       // Setup search for meals
-        document.getElementById('meal-search-meals-input').addEventListener('input', function() {
-            self.filterMealSelectorMeals(this.value);
-        });
-        
-        // Setup search for recipes
+        // Setup search
         document.getElementById('meal-search-input').addEventListener('input', function() {
             self.filterMealRecipes(this.value);
         });
@@ -1866,12 +1859,12 @@ class RecipeManager {
             }
         });
         
-        // Initial lists
+        // Initial recipe list
         this.currentMealDate = date;
         this.currentMealType = mealType;
-        this.filterMealRecipes(''); // Start with recipes tab
+        this.filterMealRecipes('');
     }
-
+    
     filterMealRecipes(searchTerm) {
         const list = document.getElementById('meal-select-recipe-list');
         const self = this;
