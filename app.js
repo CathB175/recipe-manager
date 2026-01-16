@@ -692,11 +692,11 @@ class RecipeManager {
         let html = '';
         
         mealOrder.forEach(mealType => {
-            const recipeId = meals[mealType];
+            // const recipeId = meals[mealType];  // DELETE THIS LINE - not used anymore
             const meal = meals[mealType];
             let mealName = null;
             
-           if (meal) {
+            if (meal) {
                 if (meal.type === 'recipe') {
                     const recipe = self.recipes.find(r => r.id === meal.recipeId);
                     mealName = recipe ? recipe.name : 'Recipe not found';
@@ -709,15 +709,15 @@ class RecipeManager {
                 '<div class="dashboard-meal-info">' +
                 '<div class="dashboard-meal-type">' + mealLabels[mealType] + '</div>';
             
-           if (mealName) {
+            if (mealName) {
                 html += '<div class="dashboard-meal-name">' + self.escapeHtml(mealName) + '</div>';
-          
             } else {
                 html += '<div class="dashboard-meal-empty">Not planned yet</div>';
             }
             
             html += '</div>';
-         if (meal && meal.type === 'recipe') {
+            
+            if (meal && meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (recipe) {
                     html += '<button class="btn btn-secondary" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\')" style="padding: 8px 16px;">View</button>';
@@ -737,7 +737,7 @@ class RecipeManager {
         
         content.innerHTML = html;
     }
-
+    
     renderDashboardNutrition() {
         const content = document.getElementById('dashboard-nutrition');
         const today = new Date().toISOString().split('T')[0];
@@ -2049,31 +2049,7 @@ class RecipeManager {
             const meal = meals[mealType];
             if (!meal) return;
             
-           if (meal.type === 'meal') {
-                const foundMeal = self.meals.find(m => m.id === meal.mealId);
-                if (!foundMeal) return;
-                
-                mealData.push({
-                    name: foundMeal.name,
-                    type: mealType,
-                    nutrition: {
-                        calories: foundMeal.calories,
-                        protein: foundMeal.protein,
-                        carbs: foundMeal.carbs,
-                        fat: foundMeal.fat,
-                        fiber: foundMeal.fiber,
-                        sugar: foundMeal.sugar
-                    }
-                });
-                
-                totals.calories += foundMeal.calories || 0;
-                totals.protein += foundMeal.protein || 0;
-                totals.carbs += foundMeal.carbs || 0;
-                totals.fat += foundMeal.fat || 0;
-                totals.fiber += foundMeal.fiber || 0;
-                totals.sugar += foundMeal.sugar || 0;
-                   
-            } else if (meal.type === 'recipe') {
+           if  (meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (!recipe) return;
                 
