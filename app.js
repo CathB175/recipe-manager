@@ -533,14 +533,7 @@ class RecipeManager {
         document.getElementById('add-quick-food-btn').addEventListener('click', () => {
             this.openQuickFoodModal();
         });
-        // Meals listeners
-        document.getElementById('add-meal-btn').addEventListener('click', () => {
-            this.openMealModal();
-        });
-
-        document.getElementById('meals-search-input').addEventListener('input', () => {
-            this.renderMeals();
-        });
+       
 
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
@@ -572,8 +565,6 @@ class RecipeManager {
 
         if (view === 'dashboard') {
             this.renderDashboard();
-        } else if (view === 'meals') {  // ADD THIS
-            this.renderMeals();
         } else if (view === 'shopping-list') {
             this.renderShoppingList();
         } else if (view === 'import-export') {
