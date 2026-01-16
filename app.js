@@ -13,7 +13,6 @@ class RecipeManager {
         };
         
         this.recipes = [];
-        this.meals = []; // ADD THIS LINE
         this.quickFoods = [];
         this.shoppingList = [];
         this.currentView = 'dashboard';
@@ -29,7 +28,6 @@ class RecipeManager {
     async init() {
         this.setupEventListeners();
         await this.loadRecipesFromSupabase();
-        await this.loadMealsFromSupabase(); // ADD THIS LINE
         await this.loadQuickFoodsFromSupabase();
         await this.loadMealPlansFromSupabase();  // ADD THIS
         await this.loadDailyExtrasFromSupabase();  // ADD THIS
