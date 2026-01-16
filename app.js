@@ -1912,29 +1912,32 @@ class RecipeManager {
         }).join('');
     }
 
-    filterMealSelectorMeals(searchTerm) {
+   filterMealSelectorMeals(searchTerm) {
         const list = document.getElementById('meal-select-meals-list');
         const self = this;
         
-        const filtered = this.meals.filter(meal => {
+        // Use recipes instead of meals
+        const filtered = this.recipes.filter(recipe => {
             if (!searchTerm) return true;
             const term = searchTerm.toLowerCase();
-            return meal.name.toLowerCase().includes(term);
+            return recipe.name.toLowerCase().includes(term) ||
+                   (recipe.keywords || []).some(k => k.toLowerCase().includes(term));
         });
         
         if (filtered.length === 0) {
-            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No meals found. <a href="#" onclick="window.recipeManager.switchView(\'meals\'); recipeManager.closeMealSelector(); return false;" style="color: #667eea;">Add meals here</a></p>';
+            list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No recipes found. <a href="#" onclick="window.recipeManager.switchView(\'recipes\'); window.recipeManager.closeMealSelector(); return false;" style="color: #667eea;">Add recipes here</a></p>';
             return;
         }
         
-        list.innerHTML = filtered.map(meal => {
-            return `<div class="meal-select-item" onclick="window.recipeManager.selectMealForPlan('${meal.id}')">
+        list.innerHTML = filtered.map(recipe => {
+            const nutrition = recipe.nutrition || {};
+            const typeLabel = recipe.isSimple ? '<span style="font-size: 10px; background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">QUICK</span>' : '';
+            return `<div class="meal-select-item" onclick="window.recipeManager.selectRecipeForMeal('${recipe.id}')">
                 <div>
-                    <div class="meal-select-item-name">${self.escapeHtml(meal.name)}</div>
+                    <div class="meal-select-item-name">${self.escapeHtml(recipe.name)}${typeLabel}</div>
                     <div class="meal-select-item-meta">
-                        ${Math.round(meal.calories)} cal
-                        ${meal.protein ? ' • ' + meal.protein.toFixed(1) + 'g protein' : ''}
-                        ${meal.carbs ? ' • ' + meal.carbs.toFixed(1) + 'g carbs' : ''}
+                        ${Math.round(nutrition.calories || 0)} cal
+                        ${nutrition.protein ? ' • ' + nutrition.protein.toFixed(1) + 'g protein' : ''}
                     </div>
                 </div>
                 <span>→</span>
