@@ -1800,25 +1800,19 @@ class RecipeManager {
                         <p style="color: #666; font-size: 14px;">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                     </div>
                     
-                    <div class="meal-select-tabs">
-                        <button class="meal-select-tab active" data-tab="meals">Meals</button>
-                        <button class="meal-select-tab" data-tab="recipes">Recipes</button>
+                   <div class="meal-select-tabs">
+                        <button class="meal-select-tab active" data-tab="recipes">Recipes</button>
                         <button class="meal-select-tab" data-tab="custom">Custom Text</button>
                     </div>
                     
-                   <div id="meal-select-tab-meals" class="meal-select-tab-content">
+                   <div id="meal-select-tab-recipes" class="meal-select-tab-content">
                         <div class="meal-select-search">
                             <input type="text" id="meal-search-meals-input" placeholder="Search meals...">
                         </div>
                         <div id="meal-select-meals-list" class="meal-select-list"></div>
                     </div>
                     
-                    <div id="meal-select-tab-recipes" class="meal-select-tab-content" style="display: none;">
-                        <div class="meal-select-search">
-                            <input type="text" id="meal-search-input" placeholder="Search recipes...">
-                        </div>
-                        <div id="meal-select-recipe-list" class="meal-select-list"></div>
-                    </div>
+                  
                     
                     <div id="meal-select-tab-custom" class="meal-select-tab-content" style="display: none;">
                         <div class="meal-custom-input-section">
@@ -1875,8 +1869,7 @@ class RecipeManager {
         // Initial lists
         this.currentMealDate = date;
         this.currentMealType = mealType;
-        this.filterMealSelectorMeals(''); // Start with meals tab
-        this.filterMealRecipes('');
+        this.filterMealRecipes(''); // Start with recipes tab
     }
 
     filterMealRecipes(searchTerm) {
@@ -1945,31 +1938,7 @@ class RecipeManager {
         }).join('');
     }
 
- async selectMealForPlan(mealId) {
-        const date = this.currentMealDate;
-        const mealType = this.currentMealType;
-        
-        if (!this.mealPlan[date]) {
-            this.mealPlan[date] = {};
-        }
-        
-        this.mealPlan[date][mealType] = {
-            type: 'meal',
-            mealId: mealId
-        };
-        
-        // Save to cloud
-        try {
-            await this.saveMealPlanToSupabase(date, mealType, this.mealPlan[date][mealType]);
-        } catch (error) {
-            alert('Error saving to cloud. Please try again.');
-            return;
-        }
-        
-        this.closeMealSelector();
-        this.renderMealPlan();
-        this.renderDashboard();
-    }
+
     
     async selectRecipeForMeal(recipeId) {
         const date = this.currentMealDate;
