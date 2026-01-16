@@ -697,10 +697,7 @@ class RecipeManager {
             let mealName = null;
             
            if (meal) {
-                if (meal.type === 'meal') {
-                    const mealData = self.meals.find(m => m.id === meal.mealId);
-                    mealName = mealData ? mealData.name : 'Meal not found';
-                } else if (meal.type === 'recipe') {
+                if (meal.type === 'recipe') {
                     const recipe = self.recipes.find(r => r.id === meal.recipeId);
                     mealName = recipe ? recipe.name : 'Recipe not found';
                 } else if (meal.type === 'custom') {
@@ -1671,15 +1668,7 @@ class RecipeManager {
             const meal = meals[mealType];
             if (!meal) return;
             
-            if (meal.type === 'meal') {
-                const mealData = self.meals.find(m => m.id === meal.mealId);
-                if (mealData) {
-                    totals.calories += mealData.calories || 0;
-                    totals.protein += mealData.protein || 0;
-                    totals.carbs += mealData.carbs || 0;
-                    totals.fat += mealData.fat || 0;
-                }
-            } else if (meal.type === 'recipe') {
+            if (meal.type === 'recipe') {
                 const recipe = self.recipes.find(r => r.id === meal.recipeId);
                 if (recipe && recipe.nutrition) {
                     totals.calories += recipe.nutrition.calories || 0;
@@ -1727,21 +1716,7 @@ class RecipeManager {
             contentHTML = `<div class="meal-slot-empty" onclick="window.recipeManager.openMealSelector('${date}', '${mealType}')">
                 + Click to add ${mealType}
             </div>`;
-        } else if (meal.type === 'meal') {
-            const mealData = self.meals.find(m => m.id === meal.mealId);
-            if (mealData) {
-                contentHTML = `<div class="meal-slot-recipe">
-                    <div class="meal-slot-recipe-info">
-                        <div class="meal-slot-recipe-name">${self.escapeHtml(mealData.name)}</div>
-                        <div class="meal-slot-recipe-nutrition">
-                            ${mealData.calories ? `<span>${Math.round(mealData.calories)} cal</span>` : ''}
-                            ${mealData.protein ? `<span>${mealData.protein.toFixed(1)}g protein</span>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            } else {
-                contentHTML = `<div class="meal-slot-custom-text">Meal not found</div>`;
-            }
+       
         } else if (meal.type === 'recipe') {
             const recipe = self.recipes.find(r => r.id === meal.recipeId);
             if (recipe) {
