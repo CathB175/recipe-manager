@@ -157,6 +157,18 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="modal-title">Add Recipe</h2>
+             
+        <!-- ADD THIS TOGGLE -->
+        <div style="margin-bottom: 20px; padding: 12px; background: #f0f4ff; border-radius: 8px; border: 2px solid #667eea;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="recipe-simple-mode" onchange="window.recipeManager.toggleSimpleMode()">
+                <span style="font-weight: 600; color: #333;">
+                    ⚡ Quick Entry Mode 
+                    <span style="font-weight: normal; color: #666; font-size: 13px;">(just name + nutrition, no cooking details)</span>
+                </span>
+            </label>
+        </div>
+        
             <form id="recipe-form" class="recipe-form">
                 <div class="form-row">
                     <div class="form-group">
@@ -169,7 +181,9 @@
                     </div>
                 </div>
 
-                <div class="form-row">
+                  <div class="form-section recipe-detailed-section">
+                <h3>Cooking Times</h3>
+                      <div class="form-row">
                     <div class="form-group">
                         <label>Prep Time (min)</label>
                         <input type="number" id="recipe-prep-time" min="0">
@@ -179,6 +193,7 @@
                         <input type="number" id="recipe-cook-time" min="0">
                     </div>
                 </div>
+                  </div>
 
                 <div class="form-row">
                     <div class="form-group">
@@ -201,15 +216,21 @@
                     <input type="text" id="recipe-keywords" placeholder="pasta, italian, comfort food">
                 </div>
 
-                <div class="form-group">
+                <div class="form-section recipe-detailed-section">
+                <h3>Ingredients</h3>
+                    <div class="form-group">
                     <label>Ingredients (one per line) *</label>
                     <textarea id="recipe-ingredients" rows="6" required placeholder="2 cups flour&#10;1 tsp salt&#10;3 eggs"></textarea>
                 </div>
-
-                <div class="form-group">
+                </div>
+                
+                  <div class="form-section recipe-detailed-section">
+                <h3>Instructions</h3>
+                      <div class="form-group">
                     <label>Steps (one per line) *</label>
                     <textarea id="recipe-steps" rows="6" required placeholder="Preheat oven to 350°F&#10;Mix dry ingredients&#10;Add wet ingredients"></textarea>
                 </div>
+                  </div>
 
                 <div class="form-group">
                     <label>Nutrition Info (per serving)</label>
@@ -268,6 +289,7 @@
     <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
