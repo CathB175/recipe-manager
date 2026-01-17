@@ -102,6 +102,7 @@ class RecipeManager {
                     fiber: 0,
                     sugar: 0
                 }
+                isSimple: recipe.is_simple || false  // ADD THIS
             }));
             
             console.log('Successfully loaded', this.recipes.length, 'recipes from Supabase');
@@ -156,6 +157,7 @@ class RecipeManager {
                 steps: recipe.steps,
                 notes: recipe.notes,
                 nutrition: recipe.nutrition,
+                is_simple: recipe.isSimple,  // ADD THIS
                 updated_at: new Date().toISOString()
             };
 
@@ -981,6 +983,11 @@ class RecipeManager {
         const form = document.getElementById('recipe-form');
         
         document.getElementById('modal-title').textContent = recipe ? 'Edit Recipe' : 'Add Recipe';
+
+          // ADD THESE LINES
+        const isSimple = recipe ? (recipe.isSimple || false) : false;
+        document.getElementById('recipe-simple-mode').checked = isSimple;
+        this.toggleSimpleMode(); // Apply the mode immediately
         
         if (recipe) {
             document.getElementById('recipe-name').value = recipe.name || '';
@@ -1010,48 +1017,46 @@ class RecipeManager {
         modal.classList.add('active');
     }
 
+    toggleSimpleMode() {
+        const isSimple = document.getElementById('recipe-simple-mode').checked;
+        
+        // Hide/show detailed sections
+        const detailedSections = document.querySelectorAll('.recipe-detailed-section');
+        detailedSections.forEach(section => {
+            section.style.display = isSimple ? 'none' : 'block';
+        });
+        
+        // Update modal title
+        const title = document.getElementById('recipe-modal-title');
+        if (isSimple) {
+            title.textContent = title.textContent.includes('Edit') ? 'Edit Quick Meal' : 'Add Quick Meal';
+        } else {
+            title.textContent = title.textContent.includes('Edit') ? 'Edit Recipe' : 'Add Recipe';
+        }
+    }
+
     closeRecipeModal() {
         document.getElementById('recipe-modal').classList.remove('active');
         this.editingRecipeId = null;
     }
 
     async saveRecipe() {
-        const nameValue = document.getElementById('recipe-name').value.trim();
-        const ingredientsValue = document.getElementById('recipe-ingredients').value.trim();
-        const stepsValue = document.getElementById('recipe-steps').value.trim();
-        
-        if (!nameValue) {
+        const name = document.getElementById('recipe-name').value.trim();
+        if (!name) {
             alert('Please enter a recipe name');
             return;
         }
-        
-        if (!ingredientsValue) {
-            alert('Please enter at least one ingredient');
-            return;
-        }
-        
-        if (!stepsValue) {
-            alert('Please enter at least one step');
-            return;
-        }
+
+        const isSimple = document.getElementById('recipe-simple-mode').checked;
         
         const recipe = {
             id: this.editingRecipeId || Date.now().toString() + '-temp',
-            name: nameValue,
-            servings: parseInt(document.getElementById('recipe-servings').value) || 4,
-            prepTime: parseInt(document.getElementById('recipe-prep-time').value) || 0,
-            cookTime: parseInt(document.getElementById('recipe-cook-time').value) || 0,
-            source: document.getElementById('recipe-source').value.trim(),
-            image: document.getElementById('recipe-image').value.trim(),
-            collections: document.getElementById('recipe-collections').value
-                .split(',').map(c => c.trim()).filter(c => c),
-            keywords: document.getElementById('recipe-keywords').value
-                .split(',').map(k => k.trim()).filter(k => k),
-            ingredients: ingredientsValue
-                .split('\n').map(i => i.trim()).filter(i => i),
-            steps: stepsValue
-                .split('\n').map(s => s.trim()).filter(s => s),
-            notes: document.getElementById('recipe-notes').value.trim(),
+            name: name,
+            ingredients: isSimple ? [] : this.currentIngredients,
+            steps: isSimple ? [] : this.currentSteps,
+            prepTime: isSimple ? 0 : parseInt(document.getElementById('recipe-prep-time').value) || 0,
+            cookTime: isSimple ? 0 : parseInt(document.getElementById('recipe-cook-time').value) || 0,
+            servings: parseInt(document.getElementById('recipe-servings').value) || 1,
             nutrition: {
                 calories: parseFloat(document.getElementById('recipe-calories').value) || 0,
                 protein: parseFloat(document.getElementById('recipe-protein').value) || 0,
@@ -1059,7 +1064,11 @@ class RecipeManager {
                 fat: parseFloat(document.getElementById('recipe-fat').value) || 0,
                 fiber: parseFloat(document.getElementById('recipe-fiber').value) || 0,
                 sugar: parseFloat(document.getElementById('recipe-sugar').value) || 0
-            }
+            },
+            keywords: document.getElementById('recipe-keywords').value.split(',').map(k => k.trim()).filter(k => k),
+            collections: Array.from(document.querySelectorAll('input[name="recipe-collection"]:checked')).map(cb => cb.value),
+            image: isSimple ? null : (this.currentRecipeImage || null),
+            isSimple: isSimple
         };
 
         try {
@@ -1076,14 +1085,11 @@ class RecipeManager {
             }
 
             this.renderRecipes();
-            this.updateCollectionFilter();
-            this.renderMealPlan();
-            this.renderDashboard(); // ADD THIS LINE
             this.closeRecipeModal();
-            
-            alert('Recipe saved to cloud!');
+            alert(isSimple ? 'Quick meal saved to cloud!' : 'Recipe saved to cloud!');
         } catch (error) {
-            alert('Error saving recipe. Please try again.');
+            console.error('Error saving recipe:', error);
+            alert('Error saving. Please try again.');
         }
     }
 
@@ -1198,6 +1204,8 @@ class RecipeManager {
             const collections = recipe.collections || [];
             const prepTime = recipe.prepTime || 0;
             const cookTime = recipe.cookTime || 0;
+
+            const simpleBadge = recipe.isSimple ? '<span style="position: absolute; top: 8px; right: 8px; background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">QUICK</span>' : '';
             
             return '<div class="recipe-card" onclick="window.recipeManager.viewRecipe(\'' + recipe.id + '\')" style="cursor: pointer;">' +
                 (recipe.image ? 
