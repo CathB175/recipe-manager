@@ -974,7 +974,7 @@ class RecipeManager {
    
     
     // CHUNK 3 OF 4 - Add this below Chunk 2
-    openRecipeModal(recipe) {
+   openRecipeModal(recipe) {
         this.closeRecipeDetailModal();
         recipe = recipe || null;
         
@@ -982,26 +982,44 @@ class RecipeManager {
         const modal = document.getElementById('recipe-modal');
         const form = document.getElementById('recipe-form');
         
-        document.getElementById('modal-title').textContent = recipe ? 'Edit Recipe' : 'Add Recipe';
-
-          // ADD THESE LINES
+        // Set title first
+        document.getElementById('recipe-modal-title').textContent = recipe ? 'Edit Recipe' : 'Add Recipe';
+        
+        // Set simple mode BEFORE loading data
         const isSimple = recipe ? (recipe.isSimple || false) : false;
         document.getElementById('recipe-simple-mode').checked = isSimple;
         this.toggleSimpleMode(); // Apply the mode immediately
         
         if (recipe) {
+            // Basic info
             document.getElementById('recipe-name').value = recipe.name || '';
             document.getElementById('recipe-servings').value = recipe.servings || 4;
             document.getElementById('recipe-prep-time').value = recipe.prepTime || '';
             document.getElementById('recipe-cook-time').value = recipe.cookTime || '';
             document.getElementById('recipe-source').value = recipe.source || '';
-            document.getElementById('recipe-image').value = recipe.image || '';
-            document.getElementById('recipe-collections').value = (recipe.collections || []).join(', ');
             document.getElementById('recipe-keywords').value = (recipe.keywords || []).join(', ');
+            
+            // Collections - check the boxes
+            document.querySelectorAll('input[name="recipe-collection"]').forEach(cb => {
+                cb.checked = (recipe.collections || []).includes(cb.value);
+            });
+            
+            // Ingredients and steps
             document.getElementById('recipe-ingredients').value = (recipe.ingredients || []).join('\n');
             document.getElementById('recipe-steps').value = (recipe.steps || []).join('\n');
             document.getElementById('recipe-notes').value = recipe.notes || '';
             
+            // Image
+            this.currentRecipeImage = recipe.image || null;
+            if (recipe.image) {
+                const preview = document.getElementById('recipe-image-preview');
+                if (preview) {
+                    preview.src = recipe.image;
+                    preview.style.display = 'block';
+                }
+            }
+            
+            // Nutrition
             const nutrition = recipe.nutrition || {};
             document.getElementById('recipe-calories').value = nutrition.calories || '';
             document.getElementById('recipe-protein').value = nutrition.protein || '';
@@ -1010,14 +1028,26 @@ class RecipeManager {
             document.getElementById('recipe-fiber').value = nutrition.fiber || '';
             document.getElementById('recipe-sugar').value = nutrition.sugar || '';
         } else {
+            // Reset form for new recipe
             form.reset();
             document.getElementById('recipe-servings').value = 4;
+            this.currentRecipeImage = null;
+            
+            // Clear image preview
+            const preview = document.getElementById('recipe-image-preview');
+            if (preview) {
+                preview.style.display = 'none';
+            }
+            
+            // Uncheck all collections
+            document.querySelectorAll('input[name="recipe-collection"]').forEach(cb => {
+                cb.checked = false;
+            });
         }
         
         modal.classList.add('active');
     }
-
-    toggleSimpleMode() {
+   toggleSimpleMode() {
         const isSimple = document.getElementById('recipe-simple-mode').checked;
         
         // Hide/show detailed sections
@@ -1026,12 +1056,15 @@ class RecipeManager {
             section.style.display = isSimple ? 'none' : 'block';
         });
         
-        // Update modal title
+        // Update modal title based on whether we're editing or adding
         const title = document.getElementById('recipe-modal-title');
+        const currentText = title.textContent;
+        const isEditing = currentText.includes('Edit');
+        
         if (isSimple) {
-            title.textContent = title.textContent.includes('Edit') ? 'Edit Quick Meal' : 'Add Quick Meal';
+            title.textContent = isEditing ? 'Edit Quick Meal' : 'Add Quick Meal';
         } else {
-            title.textContent = title.textContent.includes('Edit') ? 'Edit Recipe' : 'Add Recipe';
+            title.textContent = isEditing ? 'Edit Recipe' : 'Add Recipe';
         }
     }
 
