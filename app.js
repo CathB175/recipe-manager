@@ -101,7 +101,7 @@ class RecipeManager {
                     fat: 0,
                     fiber: 0,
                     sugar: 0
-                }
+                },
                 isSimple: recipe.is_simple || false  // ADD THIS
             }));
             
